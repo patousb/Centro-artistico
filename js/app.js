@@ -41,7 +41,7 @@ function inicializarDatos() {
         localStorage.setItem('asistencia', JSON.stringify(asistencia));
     }
 
-    // Actividades
+    // Actividades (MEJORADO)
     if (!localStorage.getItem('actividades')) {
         const actividades = [
             { 
@@ -91,9 +91,10 @@ function inicializarDatos() {
         localStorage.setItem('actividades', JSON.stringify(actividades));
     }
 
-    // Horarios
+    // Horarios (MEJORADO - con diferentes horarios por grado)
     if (!localStorage.getItem('horarios')) {
         const horarios = {
+            // Primaria (7:00 AM - 12:45 PM)
             primero: [
                 { hora: '07:00 - 07:45', lunes: 'Matemáticas', martes: 'Lengua', miercoles: 'Ciencias', jueves: 'Historia', viernes: 'Ed. Física' },
                 { hora: '07:45 - 08:30', lunes: 'Lengua', martes: 'Matemáticas', miercoles: 'Historia', jueves: 'Ciencias', viernes: 'Arte' },
@@ -114,6 +115,7 @@ function inicializarDatos() {
                 { hora: '11:15 - 12:00', lunes: 'Música', martes: 'Inglés', miercoles: 'Ed. Física', jueves: 'Ética', viernes: 'Lengua' },
                 { hora: '12:00 - 12:45', lunes: 'Ed. Física', martes: 'Tecnología', miercoles: 'Ética', jueves: 'Música', viernes: 'Ciencias' }
             ],
+            // Secundaria (7:00 AM - 3:00 PM)
             septimo: [
                 { hora: '07:00 - 07:45', lunes: 'Matemáticas', martes: 'Lengua', miercoles: 'Física', jueves: 'Historia', viernes: 'Ed. Física' },
                 { hora: '07:45 - 08:30', lunes: 'Lengua', martes: 'Matemáticas', miercoles: 'Química', jueves: 'Ciencias', viernes: 'Arte' },
@@ -128,9 +130,10 @@ function inicializarDatos() {
                 { hora: '14:15 - 15:00', lunes: 'Club', martes: 'Taller', miercoles: 'Tecnología', jueves: 'Música', viernes: 'Orientación' }
             ]
         };
+        // Completar grados restantes con horarios básicos
         const gradosRestantes = ['tercero', 'cuarto', 'quinto', 'sexto', 'octavo', 'noveno', 'decimo', 'once'];
         gradosRestantes.forEach(g => {
-            horarios[g] = JSON.parse(JSON.stringify(horarios.primero));
+            horarios[g] = JSON.parse(JSON.stringify(horarios.primero)); // Copia de primero como base
         });
         
         localStorage.setItem('horarios', JSON.stringify(horarios));
@@ -162,7 +165,7 @@ function inicializarDatos() {
     // Textos inicio
     if (!localStorage.getItem('inicioTextos')) {
         const inicioTextos = {
-            colegioNombre: 'Colegio CEI',
+            colegioNombre: 'Colegio Centro de Educación Individualizada',
             colegioLema: 'Educación con valores',
             eventos: '<p>📅 10/04 - Feria de Ciencias</p><p>📅 15/04 - Examen de Matemáticas</p><p>📅 20/04 - Reunión de padres</p>',
             avisos: '<li>📢 Reunión de padres: 15 de abril</li><li>📢 Inscripciones abiertas para 2026</li><li>📢 Talleres extracurriculares</li>',
@@ -174,7 +177,7 @@ function inicializarDatos() {
     // Sobre Nosotros
     if (!localStorage.getItem('sobreNosotros')) {
         const sn = {
-            historia: 'Fundado en 1985, el Colegio CEI ha formado a miles de estudiantes con excelencia académica y valores cristianos.',
+            historia: 'Fundado en 1985, el Colegio Centro de Educación Individualizada ha formado a miles de estudiantes con excelencia académica y valores cristianos.',
             mision: 'Formar líderes íntegros con pensamiento crítico y compromiso social.',
             vision: 'Ser reconocidos como la mejor institución educativa de la región para 2030.',
             valores: 'Respeto, Responsabilidad, Honestidad, Solidaridad.',
@@ -186,9 +189,9 @@ function inicializarDatos() {
     // Contacto
     if (!localStorage.getItem('contacto')) {
         const contacto = {
-            telefono: '📞 (011) 1234-5678',
-            email: '📧 info@colegio.edu',
-            direccion: '📍 Av. Siempre Viva 123'
+            telefono: '📞 Teléfono: (011) 1234-5678',
+            email: '📧 Email: info@colegio.edu',
+            direccion: '📍 Dirección: Av. Siempre Viva 123, Springfield'
         };
         localStorage.setItem('contacto', JSON.stringify(contacto));
     }
@@ -199,14 +202,12 @@ function inicializarDatos() {
             cultura: {
                 titulo: 'Cultura',
                 descripcion: 'Explora nuestras actividades culturales',
-                color: '#4361ee',
+                color: '#4a7d9e',
                 icono: 'palette',
-                imagen: 'https://images.unsplash.com/photo-1460661419201-fd4cecdf8a8b?w=600',
                 categorias: {
                     danza: {
                         nombre: 'Danza Folclórica',
                         informacion: 'Grupo de danza folclórica. Ensayos: martes y jueves 4-6pm. Participamos en festivales locales.',
-                        imagen: 'https://images.unsplash.com/photo-1504609813442-a8924e83f76e?w=600',
                         imagenes: [
                             'https://images.unsplash.com/photo-1504609813442-a8924e83f76e?w=600',
                             'https://images.unsplash.com/photo-1547153760-18fc86324498?w=600',
@@ -216,7 +217,6 @@ function inicializarDatos() {
                     teatro: {
                         nombre: 'Teatro',
                         informacion: 'Taller de teatro escolar. Ensayos: lunes y miércoles 3-5pm. Presentaciones trimestrales.',
-                        imagen: 'https://images.unsplash.com/photo-1507676184212-d03ab07a01bf?w=600',
                         imagenes: [
                             'https://images.unsplash.com/photo-1507676184212-d03ab07a01bf?w=600',
                             'https://images.unsplash.com/photo-1503095396548-807c10322a0c?w=600',
@@ -228,14 +228,12 @@ function inicializarDatos() {
             deporte: {
                 titulo: 'Deporte',
                 descripcion: 'Vive la pasión del deporte',
-                color: '#f72585',
+                color: '#f39c12',
                 icono: 'futbol',
-                imagen: 'https://images.unsplash.com/photo-1579952363873-27f3bade9f55?w=600',
                 categorias: {
                     futbol: {
                         nombre: 'Fútbol Masculino',
                         informacion: 'Equipo de fútbol masculino. Entrenamientos: lunes, miércoles y viernes 4-6pm. Categorías: sub-13, sub-15 y sub-17.',
-                        imagen: 'https://images.unsplash.com/photo-1579952363873-27f3bade9f55?w=600',
                         imagenes: [
                             'https://images.unsplash.com/photo-1579952363873-27f3bade9f55?w=600',
                             'https://images.unsplash.com/photo-1543326727-cf6c39e8f84c?w=600',
@@ -246,43 +244,6 @@ function inicializarDatos() {
             }
         };
         localStorage.setItem('culturaDeporte', JSON.stringify(culturaDeporte));
-    }
-
-    // MUESTRAS ARTÍSTICAS (NUEVA SECCIÓN)
-    if (!localStorage.getItem('muestrasArtisticas')) {
-        const muestras = {
-            danza: {
-                titulo: "💃 Danza",
-                imagen: "https://images.unsplash.com/photo-1508700115892-45ecd05ae2ad?auto=format&fit=crop&w=1200&q=80",
-                galeria: [
-                    { url: "https://images.unsplash.com/photo-1547153760-18fc86324498?auto=format&fit=crop&w=800&q=80" },
-                    { url: "https://images.unsplash.com/photo-1518834107812-5b84b60f6fd4?auto=format&fit=crop&w=800&q=80" },
-                    { url: "https://images.unsplash.com/photo-1460723237483-7d6dc9bf3de6?auto=format&fit=crop&w=800&q=80" },
-                    { url: "https://images.unsplash.com/photo-1504609813442-a8924e83f76e?auto=format&fit=crop&w=800&q=80" }
-                ]
-            },
-            teatro: {
-                titulo: "🎭 Teatro",
-                imagen: "https://images.unsplash.com/photo-1515169067868-5387ec356754?auto=format&fit=crop&w=1200&q=80",
-                galeria: [
-                    { url: "https://images.unsplash.com/photo-1503095396549-807759245b35?auto=format&fit=crop&w=800&q=80" },
-                    { url: "https://images.unsplash.com/photo-1516450360452-9312f5e86fc7?auto=format&fit=crop&w=800&q=80" },
-                    { url: "https://images.unsplash.com/photo-1507676184212-d03ab07a01bf?auto=format&fit=crop&w=800&q=80" },
-                    { url: "https://images.unsplash.com/photo-1585699324551-f6c309eedeca?auto=format&fit=crop&w=800&q=80" }
-                ]
-            },
-            muestras: {
-                titulo: "🎨 Muestras de Arte",
-                imagen: "https://images.unsplash.com/photo-1503095396549-807759245b35?auto=format&fit=crop&w=1200&q=80",
-                galeria: [
-                    { url: "https://images.unsplash.com/photo-1536924940846-227afb31e2a5?auto=format&fit=crop&w=800&q=80" },
-                    { url: "https://images.unsplash.com/photo-1460661419201-fd4cecdf8a8b?auto=format&fit=crop&w=800&q=80" },
-                    { url: "https://images.unsplash.com/photo-1513364776144-60967b0f800f?auto=format&fit=crop&w=800&q=80" },
-                    { url: "https://images.unsplash.com/photo-1547826039-bfc35e0f1ea8?auto=format&fit=crop&w=800&q=80" }
-                ]
-            }
-        };
-        localStorage.setItem('muestrasArtisticas', JSON.stringify(muestras));
     }
 }
 inicializarDatos();
@@ -296,7 +257,7 @@ let calendarioAnio = new Date().getFullYear();
 let indiceCulturaCarrusel = {};
 let intervalosCulturaCarrusel = {};
 
-// ========== CLASES ==========
+// ========== CLASES MEJORADAS ==========
 
 // Clase GestorHorarios
 class GestorHorarios {
@@ -532,6 +493,17 @@ class CalendarioManager {
             let clase = 'calendario-dia';
             if (actividadesDia.length > 0) clase += ' tiene-eventos';
             
+            let tipoPrincipal = '';
+            if (actividadesDia.length > 0) {
+                const tipos = actividadesDia.map(a => a.tipo);
+                if (tipos.includes('examen')) tipoPrincipal = 'examen';
+                else if (tipos.includes('evento')) tipoPrincipal = 'evento';
+                else if (tipos.includes('reunion')) tipoPrincipal = 'reunion';
+                else if (tipos.includes('feriado')) tipoPrincipal = 'feriado';
+            }
+            
+            if (tipoPrincipal) clase += ` tipo-${tipoPrincipal}`;
+            
             html += `
                 <div class="${clase}" data-fecha="${fechaStr}" onclick="calendarioManager.mostrarDetalleFecha('${fechaStr}')">
                     <span class="numero-dia">${dia}</span>
@@ -593,7 +565,7 @@ class CalendarioManager {
         
         let html = `
             <div class="detalle-fecha-header">
-                <h3>${fechaFormateada}</h3>
+                <h2>${fechaFormateada}</h2>
                 <p>${actividades.length} actividad(es) programada(s)</p>
             </div>
             <div class="actividades-lista-detalle">
@@ -608,8 +580,8 @@ class CalendarioManager {
                         <span class="actividad-tipo-badge">${this.getIconoTipo(act.tipo)} ${act.tipo}</span>
                         <span class="actividad-hora">${horaTexto}</span>
                     </div>
-                    <h4>${act.titulo}</h4>
-                    <p>${act.descripcion}</p>
+                    <h3>${act.titulo}</h3>
+                    <p class="actividad-descripcion">${act.descripcion}</p>
                     
                     <div class="actividad-detalle-info">
                         ${act.lugar ? `<p><i class="fas fa-map-marker-alt"></i> ${act.lugar}</p>` : ''}
@@ -811,7 +783,6 @@ const btnAgregarCalificacion = document.getElementById('btnAgregarCalificacion')
 const btnAgregarAsistencia = document.getElementById('btnAgregarAsistencia');
 const formContacto = document.getElementById('formContacto');
 const formMensaje = document.getElementById('formMensaje');
-const menuToggle = document.getElementById('menuToggle');
 
 // ===== FUNCIONES DE UTILIDAD =====
 function generarMenu() {
@@ -820,14 +791,12 @@ function generarMenu() {
 
     if (rol === 'invitado') {
         items.push({ id: 'inicio', nombre: 'Inicio', icono: 'home' });
-        items.push({ id: 'muestras-artisticas', nombre: 'Muestras Artísticas', icono: 'palette' });
-        items.push({ id: 'cultura-deporte', nombre: 'Cultura y Deporte', icono: 'futbol' });
+        items.push({ id: 'cultura-deporte', nombre: 'Cultura y Deporte', icono: 'palette' });
         items.push({ id: 'sobre-nosotros', nombre: 'Sobre Nosotros', icono: 'school' });
         items.push({ id: 'contacto', nombre: 'Contacto', icono: 'envelope' });
     } else if (rol === 'estudiante') {
         items.push({ id: 'inicio', nombre: 'Inicio', icono: 'home' });
-        items.push({ id: 'muestras-artisticas', nombre: 'Muestras Artísticas', icono: 'palette' });
-        items.push({ id: 'cultura-deporte', nombre: 'Cultura y Deporte', icono: 'futbol' });
+        items.push({ id: 'cultura-deporte', nombre: 'Cultura y Deporte', icono: 'palette' });
         items.push({ id: 'actividades', nombre: 'Actividades', icono: 'calendar-alt' });
         items.push({ id: 'horarios', nombre: 'Horarios', icono: 'clock' });
         items.push({ id: 'calificaciones', nombre: 'Calificaciones', icono: 'chart-line' });
@@ -836,8 +805,7 @@ function generarMenu() {
         items.push({ id: 'contacto', nombre: 'Contacto', icono: 'envelope' });
     } else if (rol === 'profesor') {
         items.push({ id: 'inicio', nombre: 'Inicio', icono: 'home' });
-        items.push({ id: 'muestras-artisticas', nombre: 'Muestras Artísticas', icono: 'palette' });
-        items.push({ id: 'cultura-deporte', nombre: 'Cultura y Deporte', icono: 'futbol' });
+        items.push({ id: 'cultura-deporte', nombre: 'Cultura y Deporte', icono: 'palette' });
         items.push({ id: 'actividades', nombre: 'Actividades', icono: 'calendar-alt' });
         items.push({ id: 'horarios', nombre: 'Horarios', icono: 'clock' });
         items.push({ id: 'calificaciones', nombre: 'Calificaciones', icono: 'chart-line' });
@@ -846,8 +814,7 @@ function generarMenu() {
         items.push({ id: 'contacto', nombre: 'Contacto', icono: 'envelope' });
     } else if (rol === 'admin') {
         items.push({ id: 'inicio', nombre: 'Inicio', icono: 'home' });
-        items.push({ id: 'muestras-artisticas', nombre: 'Muestras Artísticas', icono: 'palette' });
-        items.push({ id: 'cultura-deporte', nombre: 'Cultura y Deporte', icono: 'futbol' });
+        items.push({ id: 'cultura-deporte', nombre: 'Cultura y Deporte', icono: 'palette' });
         items.push({ id: 'actividades', nombre: 'Actividades', icono: 'calendar-alt' });
         items.push({ id: 'horarios', nombre: 'Horarios', icono: 'clock' });
         items.push({ id: 'calificaciones', nombre: 'Calificaciones', icono: 'chart-line' });
@@ -868,9 +835,6 @@ function generarMenu() {
         a.addEventListener('click', (e) => {
             e.preventDefault();
             mostrarSeccion(item.id);
-            if (window.innerWidth <= 768) {
-                document.getElementById('mainNav').classList.remove('mostrar');
-            }
         });
         li.appendChild(a);
         menuPrincipal.appendChild(li);
@@ -910,9 +874,6 @@ function mostrarSeccion(idSeccion) {
         renderizarCulturaDeporte();
         volverACultura();
     }
-    if (idSeccion === 'muestras-artisticas') {
-        renderizarMuestrasArtisticas();
-    }
     if (idSeccion === 'sobre-nosotros') cargarSobreNosotros();
     if (idSeccion === 'contacto') cargarContacto();
 }
@@ -926,7 +887,6 @@ function actualizarUIporRol() {
     btnAgregarAsistencia.style.display = (rol === 'admin' || rol === 'profesor') ? 'inline-block' : 'none';
     
     document.querySelectorAll('.edit-btn').forEach(btn => btn.style.display = (rol === 'admin') ? 'inline-flex' : 'none');
-    document.querySelectorAll('.edit-btn-small').forEach(btn => btn.style.display = (rol === 'admin') ? 'inline-flex' : 'none');
     
     const selectorEstudianteContainer = document.getElementById('selector-estudiante-container');
     if (selectorEstudianteContainer) {
@@ -942,7 +902,7 @@ function actualizarUIporRol() {
 // ===== FUNCIONES DE RENDERIZADO =====
 function cargarTextosInicio() {
     const textos = JSON.parse(localStorage.getItem('inicioTextos')) || {};
-    document.getElementById('colegio-nombre').innerText = textos.colegioNombre || 'Colegio CEI';
+    document.getElementById('colegio-nombre').innerText = textos.colegioNombre || 'Colegio Centro de Educación Individualizada';
     document.getElementById('colegio-lema').innerText = textos.colegioLema || 'Educación con valores';
     document.getElementById('eventos-destacados').innerHTML = textos.eventos || '<p>No hay eventos</p>';
     document.getElementById('avisos-lista').innerHTML = textos.avisos || '<li>No hay avisos</li>';
@@ -960,77 +920,27 @@ function cargarSobreNosotros() {
 
 function cargarContacto() {
     const contacto = JSON.parse(localStorage.getItem('contacto')) || {};
-    document.getElementById('contacto-telefono').innerText = contacto.telefono || '📞 (011) 1234-5678';
-    document.getElementById('contacto-email').innerText = contacto.email || '📧 info@colegio.edu';
-    document.getElementById('contacto-direccion').innerText = contacto.direccion || '📍 Av. Siempre Viva 123';
+    document.getElementById('contacto-telefono').innerText = contacto.telefono || '📞 Teléfono: (011) 1234-5678';
+    document.getElementById('contacto-email').innerText = contacto.email || '📧 Email: info@colegio.edu';
+    document.getElementById('contacto-direccion').innerText = contacto.direccion || '📍 Dirección: Av. Siempre Viva 123, Springfield';
 }
 
-// ===== MUESTRAS ARTÍSTICAS (NUEVA SECCIÓN) =====
-function renderizarMuestrasArtisticas() {
-    const muestras = JSON.parse(localStorage.getItem('muestrasArtisticas')) || {};
-    const container = document.getElementById('catalogo-artistico');
-    
-    let html = '';
-    for (let key in muestras) {
-        const muestra = muestras[key];
-        html += `
-            <div class="card" 
-                 style="background-image: url('${muestra.imagen}')" 
-                 onclick="mostrarGaleria('${key}')"
-                 aria-label="Ver galería de ${muestra.titulo}">
-                <span>${muestra.titulo}</span>
-            </div>
-        `;
+// ===== HORARIOS =====
+function renderizarHorarios() {
+    const select = document.getElementById('selector-grado-horario');
+    let grado = select.value;
+    if (!grado && usuarioActual?.rol === 'estudiante') {
+        grado = usuarioActual.grado;
+        select.value = grado;
     }
     
-    container.innerHTML = html;
-    document.getElementById('galeria-muestras').style.display = 'none';
+    if (!grado) {
+        document.getElementById('horarios-tabla-container').innerHTML = '<p class="text-center">Seleccione un grado para ver el horario.</p>';
+        return;
+    }
+    
+    gestorHorarios.renderizarHorario(grado, 'horarios-tabla-container');
 }
-
-window.mostrarGaleria = function(categoria) {
-    const muestras = JSON.parse(localStorage.getItem('muestrasArtisticas')) || {};
-    const muestra = muestras[categoria];
-    
-    document.getElementById('titulo-galeria').textContent = muestra.titulo;
-    
-    const galeriaContainer = document.getElementById('galeria-imagenes');
-    galeriaContainer.innerHTML = '';
-    
-    muestra.galeria.forEach((img, index) => {
-        const item = document.createElement('div');
-        item.className = 'galeria-item';
-        item.onclick = () => abrirModalImagen(img.url);
-        
-        const imagen = document.createElement('img');
-        imagen.src = img.url;
-        imagen.alt = `${muestra.titulo} - Imagen ${index + 1}`;
-        imagen.loading = 'lazy';
-        
-        item.appendChild(imagen);
-        galeriaContainer.appendChild(item);
-    });
-    
-    document.getElementById('catalogo-artistico').parentElement.style.display = 'none';
-    document.getElementById('galeria-muestras').style.display = 'block';
-};
-
-window.volverCatalogo = function() {
-    document.getElementById('catalogo-artistico').parentElement.style.display = 'block';
-    document.getElementById('galeria-muestras').style.display = 'none';
-};
-
-window.abrirModalImagen = function(url) {
-    const modal = document.getElementById('modalImagen');
-    const imagen = document.getElementById('imagenAmpliada');
-    imagen.src = url;
-    modal.style.display = 'flex';
-    document.body.style.overflow = 'hidden';
-};
-
-window.cerrarModalImagen = function() {
-    document.getElementById('modalImagen').style.display = 'none';
-    document.body.style.overflow = 'auto';
-};
 
 // ===== CULTURA Y DEPORTE =====
 function renderizarCulturaDeporte() {
@@ -1039,15 +949,15 @@ function renderizarCulturaDeporte() {
     
     let html = `
         <div class="cultura-deporte-grid">
-            <div class="cultura-card" style="background-image: linear-gradient(135deg, ${data.cultura.color}, #104e8b), url('${data.cultura.imagen}'); background-blend-mode: overlay;" onclick="verCategoria('cultura')">
-                <div class="cultura-card-overlay">
+            <div class="cultura-card" style="background: linear-gradient(135deg, ${data.cultura.color}, #104e8b)" onclick="verCategoria('cultura')">
+                <div>
                     <i class="fas fa-${data.cultura.icono}"></i>
                     <h3>${data.cultura.titulo}</h3>
                     <p>${data.cultura.descripcion}</p>
                 </div>
             </div>
-            <div class="cultura-card" style="background-image: linear-gradient(135deg, ${data.deporte.color}, #e67e22), url('${data.deporte.imagen}'); background-blend-mode: overlay;" onclick="verCategoria('deporte')">
-                <div class="cultura-card-overlay">
+            <div class="cultura-card" style="background: linear-gradient(135deg, ${data.deporte.color}, #e67e22)" onclick="verCategoria('deporte')">
+                <div>
                     <i class="fas fa-${data.deporte.icono}"></i>
                     <h3>${data.deporte.titulo}</h3>
                     <p>${data.deporte.descripcion}</p>
@@ -1058,7 +968,7 @@ function renderizarCulturaDeporte() {
 
     if (usuarioActual && usuarioActual.rol === 'admin') {
         html += `<div style="text-align: center; margin-top: 2rem;">
-            <button class="btn-warning" onclick="abrirEditorCultura()"><i class="fas fa-edit"></i> Editar Sección</button>
+            <button class="edit-btn" onclick="abrirEditorCultura()"><i class="fas fa-edit"></i> Editar Sección</button>
         </div>`;
     }
 
@@ -1073,10 +983,8 @@ window.verCategoria = function(tipo) {
     for (let key in categoria.categorias) {
         const sub = categoria.categorias[key];
         categoriasHtml += `
-            <div class="subcategoria-card" style="background-image: linear-gradient(135deg, ${data[tipo].color}, #104e8b), url('${sub.imagen}'); background-blend-mode: overlay;" onclick="verSubcategoria('${tipo}', '${key}')">
-                <div class="subcategoria-overlay">
-                    <h4>${sub.nombre}</h4>
-                </div>
+            <div class="subcategoria-card" onclick="verSubcategoria('${tipo}', '${key}')">
+                <h4>${sub.nombre}</h4>
             </div>
         `;
     }
@@ -1116,11 +1024,6 @@ window.verSubcategoria = function(tipo, key) {
         <div class="subcategoria-contenido">
             <div class="subcategoria-info">
                 <p>${sub.informacion}</p>
-                ${usuarioActual && usuarioActual.rol === 'admin' ? `
-                    <button class="btn-warning btn-small" onclick="editarSubcategoria('${tipo}', '${key}')" style="margin-top:1rem;">
-                        <i class="fas fa-edit"></i> Editar
-                    </button>
-                ` : ''}
             </div>
             <div class="carrusel-cultura-container" id="carrusel-${key}">
                 ${imagenesHtml}
@@ -1131,6 +1034,11 @@ window.verSubcategoria = function(tipo, key) {
                 </div>
             </div>
         </div>
+        ${usuarioActual && usuarioActual.rol === 'admin' ? `
+            <div class="admin-actions">
+                <button class="btn-warning" onclick="editarSubcategoria('${tipo}', '${key}')"><i class="fas fa-edit"></i> Editar</button>
+            </div>
+        ` : ''}
     `;
 
     document.getElementById('categoria-detalle-container').style.display = 'none';
@@ -1197,11 +1105,6 @@ window.abrirEditorCultura = function() {
                 <label>Descripción</label>
                 <textarea id="edit-cultura-descripcion">${data.cultura.descripcion}</textarea>
             </div>
-            <div class="form-group">
-                <label>Imagen URL</label>
-                <input type="text" id="edit-cultura-imagen" value="${data.cultura.imagen}">
-            </div>
-            
             <h4>Deporte</h4>
             <div class="form-group">
                 <label>Título</label>
@@ -1211,30 +1114,23 @@ window.abrirEditorCultura = function() {
                 <label>Descripción</label>
                 <textarea id="edit-deporte-descripcion">${data.deporte.descripcion}</textarea>
             </div>
-            <div class="form-group">
-                <label>Imagen URL</label>
-                <input type="text" id="edit-deporte-imagen" value="${data.deporte.imagen}">
-            </div>
-            
             <button class="btn-success" onclick="guardarEditorCultura()">Guardar</button>
         </div>
     `;
     
     document.getElementById('editor-cultura-contenido').innerHTML = html;
-    document.getElementById('modalEditorCultura').style.display = 'flex';
+    modalEditorCultura.style.display = 'flex';
 };
 
 window.guardarEditorCultura = function() {
     const data = JSON.parse(localStorage.getItem('culturaDeporte')) || {};
     data.cultura.titulo = document.getElementById('edit-cultura-titulo').value;
     data.cultura.descripcion = document.getElementById('edit-cultura-descripcion').value;
-    data.cultura.imagen = document.getElementById('edit-cultura-imagen').value;
     data.deporte.titulo = document.getElementById('edit-deporte-titulo').value;
     data.deporte.descripcion = document.getElementById('edit-deporte-descripcion').value;
-    data.deporte.imagen = document.getElementById('edit-deporte-imagen').value;
     
     localStorage.setItem('culturaDeporte', JSON.stringify(data));
-    document.getElementById('modalEditorCultura').style.display = 'none';
+    modalEditorCultura.style.display = 'none';
     renderizarCulturaDeporte();
 };
 
@@ -1262,17 +1158,13 @@ window.editarSubcategoria = function(tipo, key) {
             <label>Información</label>
             <textarea id="edit-sub-informacion">${sub.informacion}</textarea>
         </div>
-        <div class="form-group">
-            <label>Imagen Principal</label>
-            <input type="text" id="edit-sub-imagen" value="${sub.imagen}">
-        </div>
         <h4>Imágenes</h4>
         ${imagenesHtml}
         <button class="btn-success" onclick="guardarSubcategoria('${tipo}', '${key}')">Guardar</button>
     `;
     
     document.getElementById('editor-cultura-contenido').innerHTML = html;
-    document.getElementById('modalEditorCultura').style.display = 'flex';
+    modalEditorCultura.style.display = 'flex';
 };
 
 window.guardarSubcategoria = function(tipo, key) {
@@ -1281,7 +1173,6 @@ window.guardarSubcategoria = function(tipo, key) {
     
     sub.nombre = document.getElementById('edit-sub-nombre').value;
     sub.informacion = document.getElementById('edit-sub-informacion').value;
-    sub.imagen = document.getElementById('edit-sub-imagen').value;
     sub.imagenes = [];
     
     let i = 0;
@@ -1291,26 +1182,9 @@ window.guardarSubcategoria = function(tipo, key) {
     }
     
     localStorage.setItem('culturaDeporte', JSON.stringify(data));
-    document.getElementById('modalEditorCultura').style.display = 'none';
+    modalEditorCultura.style.display = 'none';
     verSubcategoria(tipo, key);
 };
-
-// ===== HORARIOS =====
-function renderizarHorarios() {
-    const select = document.getElementById('selector-grado-horario');
-    let grado = select.value;
-    if (!grado && usuarioActual?.rol === 'estudiante') {
-        grado = usuarioActual.grado;
-        select.value = grado;
-    }
-    
-    if (!grado) {
-        document.getElementById('horarios-tabla-container').innerHTML = '<p class="text-center">Seleccione un grado para ver el horario.</p>';
-        return;
-    }
-    
-    gestorHorarios.renderizarHorario(grado, 'horarios-tabla-container');
-}
 
 // ===== CALIFICACIONES =====
 function cargarSelectorEstudiantes() {
@@ -1361,7 +1235,7 @@ function renderizarCalificacionesYAsistencia() {
                 <td>${c.nota1}</td>
                 <td>${c.nota2}</td>
                 <td>${c.nota3}</td>
-                <td><strong>${promedio}</strong></td>
+                <td>${promedio}</td>
                 <td>${c.comportamiento || 'N/A'}</td>
                 <td>
                     ${(rol === 'admin' || rol === 'profesor') ? 
@@ -1385,7 +1259,7 @@ function renderizarCalificacionesYAsistencia() {
                 <td>${a.materia}</td>
                 <td>${a.clases_totales}</td>
                 <td>${a.asistencias}</td>
-                <td><strong>${porcentaje}</strong></td>
+                <td>${porcentaje}</td>
                 <td>
                     ${(rol === 'admin' || rol === 'profesor') ? 
                         `<button class="btn-warning btn-small" onclick="editarAsistencia(${a.id})"><i class="fas fa-edit"></i></button>
@@ -1413,8 +1287,8 @@ function renderizarForo() {
         div.className = 'mensaje';
         div.innerHTML = `
             <div class="mensaje-header">
-                <span><i class="fas fa-user-circle"></i> ${m.autor}</span>
-                <span><i class="far fa-calendar-alt"></i> ${new Date(m.fecha).toLocaleDateString()}</span>
+                <span>${m.autor}</span>
+                <span>${new Date(m.fecha).toLocaleDateString()}</span>
             </div>
             <div class="mensaje-contenido">
                 <strong>${m.titulo}</strong>
@@ -1428,9 +1302,7 @@ function renderizarForo() {
                 `).join('') : ''}
             </div>
             ${usuarioActual && usuarioActual.rol === 'estudiante' ? `
-                <button class="btn-primary btn-small" onclick="agregarComentario(${m.id})">
-                    <i class="fas fa-comment"></i> Comentar
-                </button>
+                <button class="btn-small" onclick="agregarComentario(${m.id})">Comentar</button>
             ` : ''}
         `;
         container.appendChild(div);
@@ -1470,8 +1342,8 @@ function renderizarSolicitudesAprobacion() {
         div.className = 'solicitud';
         div.innerHTML = `
             <div class="solicitud-info">
-                <p><strong>${s.nombre}</strong> - ${s.email}</p>
-                <p>Grado: ${s.grado} | Fecha: ${new Date(s.fecha).toLocaleDateString()}</p>
+                <p><strong>${s.nombre}</strong> - ${s.email} - Grado: ${s.grado}</p>
+                <p>Fecha: ${new Date(s.fecha).toLocaleDateString()}</p>
             </div>
             <div class="solicitud-acciones">
                 <button class="btn-success" onclick="aprobarSolicitud(${s.id})">Aprobar</button>
@@ -1487,9 +1359,8 @@ function renderizarSolicitudesAprobacion() {
         div.className = 'solicitud';
         div.innerHTML = `
             <div class="solicitud-info">
-                <p><strong>${s.nombre}</strong> - ${s.email}</p>
-                <p>Grado: ${s.grado} | Fecha: ${new Date(s.fecha).toLocaleDateString()}</p>
-                <p>Estado: <span class="estado-${s.estado}">${s.estado}</span></p>
+                <p><strong>${s.nombre}</strong> - ${s.email} - Grado: ${s.grado}</p>
+                <p>Fecha: ${new Date(s.fecha).toLocaleDateString()} - Estado: <span class="estado-${s.estado}">${s.estado}</span></p>
             </div>
         `;
         historialDiv.appendChild(div);
@@ -1612,20 +1483,16 @@ function abrirEditorCarrusel() {
     lista.innerHTML = '';
     carrusel.forEach((item, index) => {
         const div = document.createElement('div');
-        div.className = 'carrusel-editor-item';
         div.innerHTML = `
-            <div style="display:flex; gap:15px; align-items:center; flex-wrap:wrap; margin-bottom:15px; padding:15px; background:#f8f9fa; border-radius:10px;">
-                <img src="${item.imagen}" style="width:150px; height:100px; object-fit:cover; border-radius:8px;">
-                <div style="flex:1;">
-                    <input type="text" placeholder="Título" value="${item.titulo}" data-index="${index}" class="carrusel-titulo form-control" style="margin-bottom:5px;">
-                    <input type="text" placeholder="Descripción" value="${item.descripcion}" data-index="${index}" class="carrusel-descripcion form-control">
-                </div>
-                <button class="btn-danger" onclick="eliminarSlide(${index})">Eliminar</button>
-            </div>
+            <img src="${item.imagen}" style="max-width:100%; height:100px; object-fit:cover;">
+            <input type="text" placeholder="Título" value="${item.titulo}" data-index="${index}" class="carrusel-titulo">
+            <input type="text" placeholder="Descripción" value="${item.descripcion}" data-index="${index}" class="carrusel-descripcion">
+            <input type="url" placeholder="URL imagen" value="${item.imagen}" data-index="${index}" class="carrusel-imagen">
+            <button class="btn-danger" onclick="eliminarSlide(${index})">Eliminar</button>
         `;
         lista.appendChild(div);
     });
-    document.getElementById('modalCarrusel').style.display = 'flex';
+    modalCarrusel.style.display = 'flex';
 }
 
 window.eliminarSlide = function(index) {
@@ -1647,19 +1514,19 @@ window.editarContenido = function(id, tipo) {
     document.getElementById('editorTipo').value = tipo;
     const campo = document.getElementById('editorCampo');
     if (tipo === 'texto') {
-        campo.innerHTML = `<input type="text" id="editorValor" class="form-control" value="${contenidoActual.replace(/"/g, '&quot;')}">`;
+        campo.innerHTML = `<input type="text" id="editorValor" value="${contenidoActual.replace(/"/g, '&quot;')}">`;
     } else if (tipo === 'textarea') {
-        campo.innerHTML = `<textarea id="editorValor" class="form-control" rows="5">${contenidoActual}</textarea>`;
+        campo.innerHTML = `<textarea id="editorValor" rows="5">${contenidoActual}</textarea>`;
     }
     document.getElementById('modalEditorTitulo').innerText = 'Editar Contenido';
-    document.getElementById('modalEditor').style.display = 'flex';
+    modalEditor.style.display = 'flex';
 };
 
 window.editarTituloSeccion = function(seccion, tituloActual) {
     if (!usuarioActual || usuarioActual.rol !== 'admin') return;
     const nuevoTitulo = prompt('Editar título:', tituloActual);
     if (nuevoTitulo) {
-        document.querySelector(`#${seccion} .section-header h2`).innerHTML = nuevoTitulo;
+        document.querySelector(`#${seccion} h2`).childNodes[0].nodeValue = nuevoTitulo + ' ';
     }
 };
 
@@ -1672,7 +1539,7 @@ window.editarTarjeta = function(tarjeta) {
     document.getElementById('tarjetaId').value = tarjeta;
     document.getElementById('tarjetaContenido').value = contenidoActual;
     document.getElementById('modalTarjetaTitulo').innerText = `Editar ${tarjeta}`;
-    document.getElementById('modalTarjeta').style.display = 'flex';
+    modalTarjeta.style.display = 'flex';
 };
 
 window.editarVideo = function() {
@@ -1720,7 +1587,7 @@ function abrirModalCalificacion(id = null) {
         document.getElementById('calificacion-comportamiento').value = 'Bueno';
         document.getElementById('tituloModalCalificacion').innerText = 'Agregar Calificación';
     }
-    document.getElementById('modalCalificacion').style.display = 'flex';
+    modalCalificacion.style.display = 'flex';
 }
 
 function abrirModalAsistencia(id = null) {
@@ -1750,12 +1617,12 @@ function abrirModalAsistencia(id = null) {
         document.getElementById('asistencia-clases-totales').value = '';
         document.getElementById('asistencia-asistencias').value = '';
     }
-    document.getElementById('modalAsistencia').style.display = 'flex';
+    modalAsistencia.style.display = 'flex';
 }
 
 window.editarCalificacion = function(id) { abrirModalCalificacion(id); };
 window.eliminarCalificacion = function(id) {
-    if (!confirm('¿Eliminar esta calificación?')) return;
+    if (!confirm('¿Eliminar?')) return;
     let calificaciones = JSON.parse(localStorage.getItem('calificaciones')) || [];
     calificaciones = calificaciones.filter(c => c.id !== id);
     localStorage.setItem('calificaciones', JSON.stringify(calificaciones));
@@ -1763,7 +1630,7 @@ window.eliminarCalificacion = function(id) {
 };
 window.editarAsistencia = function(id) { abrirModalAsistencia(id); };
 window.eliminarAsistencia = function(id) {
-    if (!confirm('¿Eliminar este registro?')) return;
+    if (!confirm('¿Eliminar?')) return;
     let asistencia = JSON.parse(localStorage.getItem('asistencia')) || [];
     asistencia = asistencia.filter(a => a.id !== id);
     localStorage.setItem('asistencia', JSON.stringify(asistencia));
@@ -1773,16 +1640,9 @@ window.eliminarAsistencia = function(id) {
 // ===== EVENTOS =====
 generarMenu();
 
-// Toggle menú móvil
-if (menuToggle) {
-    menuToggle.addEventListener('click', () => {
-        document.getElementById('mainNav').classList.toggle('mostrar');
-    });
-}
-
-// Login
-btnLogin.addEventListener('click', () => document.getElementById('modalLogin').style.display = 'flex');
-cerrarModal.addEventListener('click', () => document.getElementById('modalLogin').style.display = 'none');
+// Event Listeners
+btnLogin.addEventListener('click', () => modalLogin.style.display = 'flex');
+cerrarModal.addEventListener('click', () => modalLogin.style.display = 'none');
 
 tabLoginBtn.addEventListener('click', () => {
     tabLoginBtn.classList.add('activo');
@@ -1798,30 +1658,27 @@ tabRegisterBtn.addEventListener('click', () => {
     panelLogin.classList.remove('activo');
 });
 
-// Cerrar modales
-document.getElementById('cerrarModalEditor').addEventListener('click', () => document.getElementById('modalEditor').style.display = 'none');
-document.getElementById('cerrarModalCarrusel').addEventListener('click', () => document.getElementById('modalCarrusel').style.display = 'none');
-document.getElementById('cerrarModalTarjeta').addEventListener('click', () => document.getElementById('modalTarjeta').style.display = 'none');
-document.getElementById('cerrarModalHorario').addEventListener('click', () => document.getElementById('modalHorario').style.display = 'none');
-document.getElementById('cerrarModalCalificacion').addEventListener('click', () => document.getElementById('modalCalificacion').style.display = 'none');
-document.getElementById('cerrarModalAsistencia').addEventListener('click', () => document.getElementById('modalAsistencia').style.display = 'none');
-document.getElementById('cerrarModalEditorCultura').addEventListener('click', () => document.getElementById('modalEditorCultura').style.display = 'none');
+document.getElementById('cerrarModalEditor').addEventListener('click', () => modalEditor.style.display = 'none');
+document.getElementById('cerrarModalCarrusel').addEventListener('click', () => modalCarrusel.style.display = 'none');
+document.getElementById('cerrarModalTarjeta').addEventListener('click', () => modalTarjeta.style.display = 'none');
+document.getElementById('cerrarModalHorario').addEventListener('click', () => modalHorario.style.display = 'none');
+document.getElementById('cerrarModalCalificacion').addEventListener('click', () => modalCalificacion.style.display = 'none');
+document.getElementById('cerrarModalAsistencia').addEventListener('click', () => modalAsistencia.style.display = 'none');
+document.getElementById('cerrarModalEditorCultura').addEventListener('click', () => modalEditorCultura.style.display = 'none');
 document.getElementById('cerrarModalDetalle').addEventListener('click', () => document.getElementById('modalDetalleActividad').style.display = 'none');
 document.getElementById('btnCancelarActividad')?.addEventListener('click', () => document.getElementById('modalActividad').style.display = 'none');
 
-// Cerrar modales al hacer click fuera
 window.addEventListener('click', (e) => {
-    if (e.target === document.getElementById('modalLogin')) document.getElementById('modalLogin').style.display = 'none';
+    if (e.target === modalLogin) modalLogin.style.display = 'none';
     if (e.target === document.getElementById('modalActividad')) document.getElementById('modalActividad').style.display = 'none';
-    if (e.target === document.getElementById('modalEditor')) document.getElementById('modalEditor').style.display = 'none';
-    if (e.target === document.getElementById('modalCarrusel')) document.getElementById('modalCarrusel').style.display = 'none';
-    if (e.target === document.getElementById('modalTarjeta')) document.getElementById('modalTarjeta').style.display = 'none';
-    if (e.target === document.getElementById('modalHorario')) document.getElementById('modalHorario').style.display = 'none';
-    if (e.target === document.getElementById('modalCalificacion')) document.getElementById('modalCalificacion').style.display = 'none';
-    if (e.target === document.getElementById('modalAsistencia')) document.getElementById('modalAsistencia').style.display = 'none';
-    if (e.target === document.getElementById('modalEditorCultura')) document.getElementById('modalEditorCultura').style.display = 'none';
+    if (e.target === modalEditor) modalEditor.style.display = 'none';
+    if (e.target === modalCarrusel) modalCarrusel.style.display = 'none';
+    if (e.target === modalTarjeta) modalTarjeta.style.display = 'none';
+    if (e.target === modalHorario) modalHorario.style.display = 'none';
+    if (e.target === modalCalificacion) modalCalificacion.style.display = 'none';
+    if (e.target === modalAsistencia) modalAsistencia.style.display = 'none';
+    if (e.target === modalEditorCultura) modalEditorCultura.style.display = 'none';
     if (e.target === document.getElementById('modalDetalleActividad')) document.getElementById('modalDetalleActividad').style.display = 'none';
-    if (e.target === document.getElementById('modalImagen')) cerrarModalImagen();
 });
 
 formLogin.addEventListener('submit', (e) => {
@@ -1836,7 +1693,7 @@ formLogin.addEventListener('submit', (e) => {
         userNameSpan.textContent = user.nombre;
         btnLogin.style.display = 'none';
         btnLogout.style.display = 'inline-block';
-        document.getElementById('modalLogin').style.display = 'none';
+        modalLogin.style.display = 'none';
         generarMenu();
         actualizarUIporRol();
         mostrarSeccion('inicio');
@@ -1847,17 +1704,9 @@ formLogin.addEventListener('submit', (e) => {
 
 formRegister.addEventListener('submit', (e) => {
     e.preventDefault();
-    
-    const password = document.getElementById('register-password').value;
-    const confirmPassword = document.getElementById('register-confirm-password').value;
-    
-    if (password !== confirmPassword) {
-        alert('Las contraseñas no coinciden');
-        return;
-    }
-    
     const nombre = document.getElementById('register-nombre').value;
     const email = document.getElementById('register-email').value;
+    const password = document.getElementById('register-password').value;
     const grado = document.getElementById('register-grado').value;
 
     let solicitudes = JSON.parse(localStorage.getItem('solicitudesAprobacion')) || [];
@@ -1875,7 +1724,7 @@ formRegister.addEventListener('submit', (e) => {
     localStorage.setItem('solicitudesAprobacion', JSON.stringify(solicitudes));
 
     alert('Solicitud enviada al administrador');
-    document.getElementById('modalLogin').style.display = 'none';
+    modalLogin.style.display = 'none';
     formRegister.reset();
     tabLoginBtn.click();
 });
@@ -1923,7 +1772,7 @@ document.getElementById('formEditor').addEventListener('submit', (e) => {
         else if (id === 'contacto-direccion') contacto.direccion = valor;
         localStorage.setItem('contacto', JSON.stringify(contacto));
     }
-    document.getElementById('modalEditor').style.display = 'none';
+    modalEditor.style.display = 'none';
 });
 
 document.getElementById('formTarjeta').addEventListener('submit', (e) => {
@@ -1942,13 +1791,13 @@ document.getElementById('formTarjeta').addEventListener('submit', (e) => {
         document.getElementById('calendario-resumen').innerHTML = contenido;
     }
     localStorage.setItem('inicioTextos', JSON.stringify(textos));
-    document.getElementById('modalTarjeta').style.display = 'none';
+    modalTarjeta.style.display = 'none';
 });
 
 if (formContacto) {
     formContacto.addEventListener('submit', (e) => {
         e.preventDefault();
-        alert('Mensaje enviado correctamente');
+        alert('Mensaje enviado');
         e.target.reset();
     });
 }
@@ -1966,9 +1815,12 @@ document.querySelectorAll('.tab-btn').forEach(btn => {
 // Selectores
 document.getElementById('selector-grado-horario').addEventListener('change', renderizarHorarios);
 document.getElementById('selector-estudiante-calif').addEventListener('change', renderizarCalificacionesYAsistencia);
+
+// Selectores en modal horario
 document.getElementById('selector-grado-visualizar')?.addEventListener('change', function() {
     gestorHorarios.renderizarHorario(this.value, 'horario-visualizacion');
 });
+
 document.getElementById('selector-grado-editar')?.addEventListener('change', function() {
     gestorHorarios.renderizarHorarioEdicion(this.value, 'horario-edicion');
 });
@@ -2061,7 +1913,7 @@ document.getElementById('formCalificacion').addEventListener('submit', (e) => {
         calificaciones.push(nuevaCalif);
     }
     localStorage.setItem('calificaciones', JSON.stringify(calificaciones));
-    document.getElementById('modalCalificacion').style.display = 'none';
+    modalCalificacion.style.display = 'none';
     renderizarCalificacionesYAsistencia();
 });
 
@@ -2084,7 +1936,7 @@ document.getElementById('formAsistencia').addEventListener('submit', (e) => {
         asistencias.push(nuevaAsis);
     }
     localStorage.setItem('asistencia', JSON.stringify(asistencias));
-    document.getElementById('modalAsistencia').style.display = 'none';
+    modalAsistencia.style.display = 'none';
     renderizarCalificacionesYAsistencia();
 });
 
@@ -2109,6 +1961,7 @@ if (formMensaje) {
     });
 }
 
+// Event listeners para botones de carrusel
 document.getElementById('btnAgregarSlide').addEventListener('click', () => {
     let carrusel = JSON.parse(localStorage.getItem('carrusel')) || [];
     carrusel.push({ id: Date.now(), imagen: 'https://images.unsplash.com/photo-1523050854058-8df90110c9f1?w=1200', titulo: 'Nueva imagen', descripcion: '' });
@@ -2119,11 +1972,13 @@ document.getElementById('btnAgregarSlide').addEventListener('click', () => {
 document.getElementById('btnGuardarCarrusel').addEventListener('click', () => {
     const titulos = document.querySelectorAll('.carrusel-titulo');
     const descripciones = document.querySelectorAll('.carrusel-descripcion');
+    const imagenes = document.querySelectorAll('.carrusel-imagen');
     let carrusel = JSON.parse(localStorage.getItem('carrusel')) || [];
     titulos.forEach((input, i) => { if (carrusel[i]) carrusel[i].titulo = input.value; });
     descripciones.forEach((input, i) => { if (carrusel[i]) carrusel[i].descripcion = input.value; });
+    imagenes.forEach((input, i) => { if (carrusel[i]) carrusel[i].imagen = input.value; });
     localStorage.setItem('carrusel', JSON.stringify(carrusel));
-    document.getElementById('modalCarrusel').style.display = 'none';
+    modalCarrusel.style.display = 'none';
     renderizarCarrusel();
 });
 
@@ -2140,6 +1995,5 @@ renderizarHorarios();
 renderizarCalificacionesYAsistencia();
 renderizarForo();
 renderizarCulturaDeporte();
-renderizarMuestrasArtisticas();
 if (usuarioActual && usuarioActual.rol === 'admin') renderizarSolicitudesAprobacion();
 mostrarSeccion('inicio');
