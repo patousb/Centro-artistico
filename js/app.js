@@ -1,3 +1,126 @@
+// ========== ESTRUCTURA DE CARPETAS PARA GITHUB ==========
+// Para subir el proyecto a GitHub, organiza las imágenes así:
+//
+//   /                  (raíz del repositorio)
+//   ├── index.html
+//   ├── css/
+//   │   └── styles.css
+//   ├── js/
+//   │   └── app.js
+//   └── assets/
+//       └── img/
+//           ├── logo.jpg          ← logo del colegio
+//           ├── carrusel/         ← imágenes del carrusel de inicio
+//           │   ├── slide1.jpg
+//           │   └── slide2.jpg
+//           ├── muestras/         ← imágenes de muestras artísticas
+//           │   ├── danza/
+//           │   ├── teatro/
+//           │   ├── arte/
+//           │   └── musica/
+//           ├── cultura-deporte/  ← imágenes de cultura y deporte
+//           │   ├── cultura/
+//           │   └── deporte/
+//           └── actividades/      ← imágenes de actividades
+//
+// Para referenciar imágenes locales en el código:
+//   'assets/img/logo.jpg'          (desde index.html)
+//   '../assets/img/logo.jpg'       (desde js/ o css/)
+//
+// NOTA: En producción (GitHub Pages) las rutas son relativas a index.html.
+//       Mientras usas URLs externas (Unsplash, etc.) funciona sin estructura.
+// =========================================================
+
+// ========== FUNCIONES DE UTILIDAD ==========
+function comprimirImagen(file, maxSizeMB = 1, callback) {
+    if (!file.type.startsWith('image/')) {
+        callback(null);
+        return;
+    }
+    
+    // Si el archivo es pequeño, no comprimir
+    if (file.size <= maxSizeMB * 1024 * 1024) {
+        const reader = new FileReader();
+        reader.onload = (e) => callback(e.target.result);
+        reader.onerror = () => callback(null);
+        reader.readAsDataURL(file);
+        return;
+    }
+    
+    const reader = new FileReader();
+    reader.onload = function(e) {
+        const img = new Image();
+        img.onload = function() {
+            let width = img.width;
+            let height = img.height;
+            
+            // Calcular nuevas dimensiones (máx 1024px)
+            const maxSize = 1024;
+            if (width > maxSize || height > maxSize) {
+                if (width > height) {
+                    height = (height * maxSize) / width;
+                    width = maxSize;
+                } else {
+                    width = (width * maxSize) / height;
+                    height = maxSize;
+                }
+            }
+            
+            const canvas = document.createElement('canvas');
+            canvas.width = width;
+            canvas.height = height;
+            const ctx = canvas.getContext('2d');
+            ctx.drawImage(img, 0, 0, width, height);
+            
+            // Calidad al 70%
+            const compressedDataUrl = canvas.toDataURL('image/jpeg', 0.7);
+            callback(compressedDataUrl);
+        };
+        img.src = e.target.result;
+    };
+    reader.onerror = () => callback(null);
+    reader.readAsDataURL(file);
+}
+
+function mostrarAdvertenciaStorage() {
+    let totalSize = 0;
+    for (let i = 0; i < localStorage.length; i++) {
+        const key = localStorage.key(i);
+        const value = localStorage.getItem(key);
+        totalSize += (key.length + value.length) * 2;
+    }
+    
+    const maxSizeMB = 5; // Aprox 5MB
+    const usedMB = totalSize / (1024 * 1024);
+    
+    if (usedMB > maxSizeMB * 0.8) {
+        console.warn(`⚠️ Almacenamiento local al ${Math.round(usedMB / maxSizeMB * 100)}% de capacidad`);
+        if (usedMB > maxSizeMB * 0.95) {
+            setTimeout(() => {
+                alert("⚠️ El almacenamiento está casi lleno. Para seguir subiendo imágenes, elimina algunas existentes o usa URLs en lugar de imágenes locales.");
+            }, 500);
+        }
+    }
+}
+
+function verificarStorageAntesDeGuardar(nuevoItem, tipo = "imagen") {
+    let espacioNecesario = nuevoItem.length * 2;
+    let espacioDisponible = 5 * 1024 * 1024;
+    let usado = 0;
+    
+    for (let i = 0; i < localStorage.length; i++) {
+        const key = localStorage.key(i);
+        const value = localStorage.getItem(key);
+        usado += (key.length + value.length) * 2;
+    }
+    
+    if (usado + espacioNecesario > espacioDisponible) {
+        alert(`⚠️ No hay suficiente espacio para guardar ${tipo === "imagen" ? "esta imagen" : "este dato"}. El almacenamiento está lleno.\n\nTe recomendamos:\n- Eliminar imágenes existentes\n- Usar URLs en lugar de imágenes locales\n- Hacer limpieza de datos antiguos`);
+        return false;
+    }
+    return true;
+}
+
 // ========== INICIALIZACIÓN DE DATOS ==========
 function inicializarDatos() {
     // Usuarios de prueba
@@ -21,26 +144,6 @@ function inicializarDatos() {
         localStorage.setItem('estudiantes', JSON.stringify(estudiantes));
     }
 
-    // Calificaciones
-    if (!localStorage.getItem('calificaciones')) {
-        const calificaciones = [
-            { id: 1, id_estudiante: 1, materia: 'Matemáticas', nota1: 4.5, nota2: 5.0, nota3: 4.0, comportamiento: 'Bueno' },
-            { id: 2, id_estudiante: 1, materia: 'Lengua', nota1: 3.5, nota2: 4.0, nota3: 4.5, comportamiento: 'Excelente' },
-            { id: 3, id_estudiante: 2, materia: 'Matemáticas', nota1: 2.5, nota2: 3.0, nota3: 3.5, comportamiento: 'Regular' }
-        ];
-        localStorage.setItem('calificaciones', JSON.stringify(calificaciones));
-    }
-
-    // Asistencia
-    if (!localStorage.getItem('asistencia')) {
-        const asistencia = [
-            { id: 1, id_estudiante: 1, materia: 'Matemáticas', clases_totales: 20, asistencias: 18 },
-            { id: 2, id_estudiante: 1, materia: 'Lengua', clases_totales: 20, asistencias: 19 },
-            { id: 3, id_estudiante: 2, materia: 'Matemáticas', clases_totales: 20, asistencias: 15 }
-        ];
-        localStorage.setItem('asistencia', JSON.stringify(asistencia));
-    }
-
     // Actividades
     if (!localStorage.getItem('actividades')) {
         const actividades = [
@@ -48,7 +151,7 @@ function inicializarDatos() {
                 id: '1', 
                 titulo: 'Feria de Ciencias', 
                 descripcion: 'Presentación de proyectos científicos de todos los cursos. Habrá experimentos, stands y competencias.',
-                fecha: '2026-04-10', 
+                fecha: new Date(Date.now() + 2 * 24 * 60 * 60 * 1000).toISOString().split('T')[0], // Dentro de 2 días
                 hora: '09:00',
                 hora_fin: '13:00',
                 tipo: 'evento', 
@@ -63,7 +166,7 @@ function inicializarDatos() {
                 id: '2', 
                 titulo: 'Examen de Matemáticas', 
                 descripcion: 'Evaluación trimestral de matemáticas. Temas: álgebra, geometría y fracciones.',
-                fecha: '2026-04-15', 
+                fecha: new Date(Date.now() + 5 * 24 * 60 * 60 * 1000).toISOString().split('T')[0], // Dentro de 5 días
                 hora: '08:00',
                 hora_fin: '10:00',
                 tipo: 'examen', 
@@ -77,7 +180,7 @@ function inicializarDatos() {
                 id: '3',
                 titulo: 'Reunión de Padres',
                 descripcion: 'Reunión informativa sobre el progreso académico del primer trimestre.',
-                fecha: '2026-04-20',
+                fecha: new Date(Date.now() + 10 * 24 * 60 * 60 * 1000).toISOString().split('T')[0], // Dentro de 10 días
                 hora: '18:00',
                 hora_fin: '20:00',
                 tipo: 'reunion',
@@ -201,26 +304,26 @@ function inicializarDatos() {
                 descripcion: 'Explora nuestras actividades culturales',
                 color: '#4361ee',
                 icono: 'palette',
-                imagen: 'https://images.unsplash.com/photo-1460661419201-fd4cecdf8a8b?w=600',
-                categorias: {
+                imagen: 'https://images.unsplash.com/photo-1514525253161-7a46d19cd819?w=800',
+                subcategorias: {
                     danza: {
-                        nombre: 'Danza Folclórica',
-                        informacion: 'Grupo de danza folclórica. Ensayos: martes y jueves 4-6pm. Participamos en festivales locales.',
-                        imagen: 'https://images.unsplash.com/photo-1504609813442-a8924e83f76e?w=600',
-                        imagenes: [
-                            'https://images.unsplash.com/photo-1504609813442-a8924e83f76e?w=600',
-                            'https://images.unsplash.com/photo-1547153760-18fc86324498?w=600',
-                            'https://images.unsplash.com/photo-1518834107812-67b0b7c58434?w=600'
+                        titulo: '💃 Danza Folclórica',
+                        informacion: 'Grupo de danza folclórica. Ensayos: martes y jueves 4-6pm.',
+                        imagen: 'https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=800',
+                        galeria: [
+                            { url: 'https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=800', descripcion: 'Presentación de danza folclórica' },
+                            { url: 'https://images.unsplash.com/photo-1516672713107-6d21eb9efa9f?w=800', descripcion: 'Ensayos semanales' },
+                            { url: 'https://images.unsplash.com/photo-1533281011690-ecf9e1b7ea26?w=800', descripcion: 'Festival de danza' }
                         ]
                     },
                     teatro: {
-                        nombre: 'Teatro',
-                        informacion: 'Taller de teatro escolar. Ensayos: lunes y miércoles 3-5pm. Presentaciones trimestrales.',
-                        imagen: 'https://images.unsplash.com/photo-1507676184212-d03ab07a01bf?w=600',
-                        imagenes: [
-                            'https://images.unsplash.com/photo-1507676184212-d03ab07a01bf?w=600',
-                            'https://images.unsplash.com/photo-1503095396548-807c10322a0c?w=600',
-                            'https://images.unsplash.com/photo-1516450360452-9312f5e86fc7?w=600'
+                        titulo: '🎭 Teatro',
+                        informacion: 'Taller de teatro escolar. Presentaciones trimestrales.',
+                        imagen: 'https://images.unsplash.com/photo-1498038432885-0e209dc829c1?w=800',
+                        galeria: [
+                            { url: 'https://images.unsplash.com/photo-1498038432885-0e209dc829c1?w=800', descripcion: 'Presentación teatral' },
+                            { url: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=800', descripcion: 'Ensayos' },
+                            { url: 'https://images.unsplash.com/photo-1495521821757-a1efb6729352?w=800', descripcion: 'Monólogos' }
                         ]
                     }
                 }
@@ -230,16 +333,16 @@ function inicializarDatos() {
                 descripcion: 'Vive la pasión del deporte',
                 color: '#f72585',
                 icono: 'futbol',
-                imagen: 'https://images.unsplash.com/photo-1579952363873-27f3bade9f55?w=600',
-                categorias: {
+                imagen: 'https://images.unsplash.com/photo-1461896836934-ffe607ba8211?w=800',
+                subcategorias: {
                     futbol: {
-                        nombre: 'Fútbol Masculino',
-                        informacion: 'Equipo de fútbol masculino. Entrenamientos: lunes, miércoles y viernes 4-6pm. Categorías: sub-13, sub-15 y sub-17.',
-                        imagen: 'https://images.unsplash.com/photo-1579952363873-27f3bade9f55?w=600',
-                        imagenes: [
-                            'https://images.unsplash.com/photo-1579952363873-27f3bade9f55?w=600',
-                            'https://images.unsplash.com/photo-1543326727-cf6c39e8f84c?w=600',
-                            'https://images.unsplash.com/photo-1517466787929-bc90951d0974?w=600'
+                        titulo: '⚽ Fútbol Masculino',
+                        informacion: 'Equipo de fútbol. Entrenamientos: lunes, miércoles y viernes 4-6pm.',
+                        imagen: 'https://images.unsplash.com/photo-1461896836934-ffe607ba8211?w=800',
+                        galeria: [
+                            { url: 'https://images.unsplash.com/photo-1461896836934-ffe607ba8211?w=800', descripcion: 'Equipo en entrenamientos' },
+                            { url: 'https://images.unsplash.com/photo-1574661852884-20a85a4a86d3?w=800', descripcion: 'Partido' },
+                            { url: 'https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?w=800', descripcion: 'Celebración' }
                         ]
                     }
                 }
@@ -253,32 +356,46 @@ function inicializarDatos() {
         const muestras = {
             danza: {
                 titulo: "💃 Danza",
-                imagen: "https://images.unsplash.com/photo-1508700115892-45ecd05ae2ad?auto=format&fit=crop&w=1200&q=80",
+                imagen: "https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=400",
+                descripcion: "Expresión artística a través del movimiento corporal",
                 galeria: [
-                    { url: "https://images.unsplash.com/photo-1547153760-18fc86324498?auto=format&fit=crop&w=800&q=80" },
-                    { url: "https://images.unsplash.com/photo-1518834107812-5b84b60f6fd4?auto=format&fit=crop&w=800&q=80" },
-                    { url: "https://images.unsplash.com/photo-1460723237483-7d6dc9bf3de6?auto=format&fit=crop&w=800&q=80" },
-                    { url: "https://images.unsplash.com/photo-1504609813442-a8924e83f76e?auto=format&fit=crop&w=800&q=80" }
+                    { url: "https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=400", descripcion: "Presentación de danza folclórica tradicional" },
+                    { url: "https://images.unsplash.com/photo-1516672713107-6d21eb9efa9f?w=400", descripcion: "Ensayo grupal de danza contemporánea" },
+                    { url: "https://images.unsplash.com/photo-1533281011690-ecf9e1b7ea26?w=400", descripcion: "Danza urbana en el patio del colegio" },
+                    { url: "https://images.unsplash.com/photo-1518834107812-67b0b7c58434?w=400", descripcion: "Festival de danza estudiantil" }
                 ]
             },
             teatro: {
                 titulo: "🎭 Teatro",
-                imagen: "https://images.unsplash.com/photo-1515169067868-5387ec356754?auto=format&fit=crop&w=1200&q=80",
+                imagen: "https://images.unsplash.com/photo-1498038432885-0e209dc829c1?w=400",
+                descripcion: "Arte dramático y expresión escénica",
                 galeria: [
-                    { url: "https://images.unsplash.com/photo-1503095396549-807759245b35?auto=format&fit=crop&w=800&q=80" },
-                    { url: "https://images.unsplash.com/photo-1516450360452-9312f5e86fc7?auto=format&fit=crop&w=800&q=80" },
-                    { url: "https://images.unsplash.com/photo-1507676184212-d03ab07a01bf?auto=format&fit=crop&w=800&q=80" },
-                    { url: "https://images.unsplash.com/photo-1585699324551-f6c309eedeca?auto=format&fit=crop&w=800&q=80" }
+                    { url: "https://images.unsplash.com/photo-1498038432885-0e209dc829c1?w=400", descripcion: "Escena de la obra 'Romeo y Julieta'" },
+                    { url: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400", descripcion: "Ensayo técnico de iluminación" },
+                    { url: "https://images.unsplash.com/photo-1495521821757-a1efb6729352?w=400", descripcion: "Presentación de monólogos estudiantiles" },
+                    { url: "https://images.unsplash.com/photo-1507924532220-6d7bae7f9b1b?w=400", descripcion: "Taller de improvisación teatral" }
                 ]
             },
-            muestras: {
+            arte: {
                 titulo: "🎨 Muestras de Arte",
-                imagen: "https://images.unsplash.com/photo-1503095396549-807759245b35?auto=format&fit=crop&w=1200&q=80",
+                imagen: "https://images.unsplash.com/photo-1460661419201-fd4cecdf8a8b?w=400",
+                descripcion: "Expresiones plásticas y visuales",
                 galeria: [
-                    { url: "https://images.unsplash.com/photo-1536924940846-227afb31e2a5?auto=format&fit=crop&w=800&q=80" },
-                    { url: "https://images.unsplash.com/photo-1460661419201-fd4cecdf8a8b?auto=format&fit=crop&w=800&q=80" },
-                    { url: "https://images.unsplash.com/photo-1513364776144-60967b0f800f?auto=format&fit=crop&w=800&q=80" },
-                    { url: "https://images.unsplash.com/photo-1547826039-bfc35e0f1ea8?auto=format&fit=crop&w=800&q=80" }
+                    { url: "https://images.unsplash.com/photo-1460661419201-fd4cecdf8a8b?w=400", descripcion: "Exposición de pintura al óleo" },
+                    { url: "https://images.unsplash.com/photo-1513364776144-60967b0f800f?w=400", descripcion: "Escultura en arcilla del alumnado" },
+                    { url: "https://images.unsplash.com/photo-1518644730709-0835105d9daa?w=400", descripcion: "Dibujo técnico en perspectiva" },
+                    { url: "https://images.unsplash.com/photo-1547826039-bfc35e0f1ea8?w=400", descripcion: "Arte digital y diseño gráfico" }
+                ]
+            },
+            musica: {
+                titulo: "🎵 Música",
+                imagen: "https://images.unsplash.com/photo-1507838153414-b4b713384a76?w=400",
+                descripcion: "Melodías y armonías estudiantiles",
+                galeria: [
+                    { url: "https://images.unsplash.com/photo-1507838153414-b4b713384a76?w=400", descripcion: "Concierto de la orquesta estudiantil" },
+                    { url: "https://images.unsplash.com/photo-1511379938547-c1f69419868d?w=400", descripcion: "Ensayo del coro polifónico" },
+                    { url: "https://images.unsplash.com/photo-1461784121038-f088ca1e7714?w=400", descripcion: "Clase de guitarra eléctrica" },
+                    { url: "https://images.unsplash.com/photo-1520523839897-bd0b52f945a0?w=400", descripcion: "Festival de música tradicional" }
                 ]
             }
         };
@@ -430,12 +547,12 @@ class GestorHorarios {
         horario.forEach((bloque, index) => {
             html += `
                 <tr data-bloque-index="${index}">
-                    <td><input type="text" class="edit-hora" value="${bloque.hora}" placeholder="HH:MM - HH:MM"></td>
-                    <td><input type="text" class="edit-lunes" value="${bloque.lunes || ''}" placeholder="Materia"></td>
-                    <td><input type="text" class="edit-martes" value="${bloque.martes || ''}" placeholder="Materia"></td>
-                    <td><input type="text" class="edit-miercoles" value="${bloque.miercoles || ''}" placeholder="Materia"></td>
-                    <td><input type="text" class="edit-jueves" value="${bloque.jueves || ''}" placeholder="Materia"></td>
-                    <td><input type="text" class="edit-viernes" value="${bloque.viernes || ''}" placeholder="Materia"></td>
+                    <td><input type="text" class="edit-hora" value="${bloque.hora.replace(/"/g, '&quot;')}" placeholder="HH:MM - HH:MM"></td>
+                    <td><input type="text" class="edit-lunes" value="${(bloque.lunes || '').replace(/"/g, '&quot;')}" placeholder="Materia"></td>
+                    <td><input type="text" class="edit-martes" value="${(bloque.martes || '').replace(/"/g, '&quot;')}" placeholder="Materia"></td>
+                    <td><input type="text" class="edit-miercoles" value="${(bloque.miercoles || '').replace(/"/g, '&quot;')}" placeholder="Materia"></td>
+                    <td><input type="text" class="edit-jueves" value="${(bloque.jueves || '').replace(/"/g, '&quot;')}" placeholder="Materia"></td>
+                    <td><input type="text" class="edit-viernes" value="${(bloque.viernes || '').replace(/"/g, '&quot;')}" placeholder="Materia"></td>
                     <td>
                         <button class="btn-danger btn-small" onclick="gestorHorarios.eliminarBloque('${grado}', ${index})">
                             <i class="fas fa-trash"></i>
@@ -539,7 +656,7 @@ class CalendarioManager {
             `;
             
             actividadesDia.slice(0, 3).forEach(act => {
-                html += `<span class="evento-titulo" title="${act.titulo}">${act.titulo.substring(0, 15)}${act.titulo.length > 15 ? '...' : ''}</span>`;
+                html += `<span class="evento-titulo" title="${act.titulo.replace(/"/g, '&quot;')}">${act.titulo.substring(0, 15)}${act.titulo.length > 15 ? '...' : ''}</span>`;
             });
             
             if (actividadesDia.length > 3) {
@@ -616,7 +733,7 @@ class CalendarioManager {
                         ${act.organizador ? `<p><i class="fas fa-user"></i> ${act.organizador}</p>` : ''}
                         ${act.curso ? `<p><i class="fas fa-users"></i> ${act.curso === 'todos' ? 'Todos los cursos' : act.curso}</p>` : ''}
                         ${act.materiales ? `<p><i class="fas fa-tools"></i> Materiales: ${act.materiales}</p>` : ''}
-                        ${act.requiere_inscripcion ? '<p><i class="fas fa-clipboard-list"></i> Requiere inscripción</p>' : ''}
+                        ${act.requiere_inscripcion ? '<p><i class="fas fa-clipboard-list"></i> Requiere inscripción previa</p>' : ''}
                     </div>
                     
                     ${act.imagen ? `<img src="${act.imagen}" alt="${act.titulo}" class="actividad-imagen">` : ''}
@@ -663,7 +780,7 @@ class CalendarioManager {
         const tituloModal = document.getElementById('tituloModalActividad');
         
         if (actividadId) {
-            const actividad = this.actividades.find(a => a.id === actividadId);
+            const actividad = this.actividades.find(a => String(a.id) === String(actividadId));
             if (actividad) {
                 document.getElementById('actividad-id').value = actividad.id;
                 document.getElementById('actividad-titulo').value = actividad.titulo;
@@ -677,7 +794,21 @@ class CalendarioManager {
                 document.getElementById('actividad-organizador').value = actividad.organizador || '';
                 document.getElementById('actividad-materiales').value = actividad.materiales || '';
                 document.getElementById('actividad-requiere-inscripcion').checked = actividad.requiere_inscripcion || false;
-                document.getElementById('actividad-imagen').value = actividad.imagen || '';
+                
+                // Manejar imagen
+                if (actividad.imagen) {
+                    if (actividad.imagen.startsWith('data:')) {
+                        document.getElementById('actividad-imagen-url').value = '';
+                        document.getElementById('actividad-imagen-file').value = '';
+                    } else {
+                        document.getElementById('actividad-imagen-url').value = actividad.imagen;
+                        document.getElementById('actividad-imagen-file').value = '';
+                    }
+                } else {
+                    document.getElementById('actividad-imagen-url').value = '';
+                    document.getElementById('actividad-imagen-file').value = '';
+                }
+                
                 tituloModal.textContent = 'Editar Actividad';
             }
         } else {
@@ -695,50 +826,71 @@ class CalendarioManager {
     guardarActividad(event) {
         event.preventDefault();
         
-        const id = document.getElementById('actividad-id').value;
-        const actividad = {
-            id: id || crypto.randomUUID(),
-            titulo: document.getElementById('actividad-titulo').value,
-            descripcion: document.getElementById('actividad-descripcion').value,
-            fecha: document.getElementById('actividad-fecha').value,
-            hora: document.getElementById('actividad-hora').value || null,
-            hora_fin: document.getElementById('actividad-hora-fin').value || null,
-            tipo: document.getElementById('actividad-tipo').value,
-            curso: document.getElementById('actividad-curso').value,
-            lugar: document.getElementById('actividad-lugar').value || null,
-            organizador: document.getElementById('actividad-organizador').value || null,
-            materiales: document.getElementById('actividad-materiales').value || null,
-            requiere_inscripcion: document.getElementById('actividad-requiere-inscripcion').checked,
-            imagen: document.getElementById('actividad-imagen').value || null
+        const procesarImagen = (callback) => {
+            const urlInput = document.getElementById('actividad-imagen-url');
+            const fileInput = document.getElementById('actividad-imagen-file');
+            
+            if (fileInput.files && fileInput.files[0]) {
+                const file = fileInput.files[0];
+                comprimirImagen(file, 1, (imagenComprimida) => {
+                    callback(imagenComprimida || null);
+                });
+            } else {
+                callback(urlInput.value || null);
+            }
         };
         
-        if (id) {
-            const index = this.actividades.findIndex(a => a.id === id);
-            if (index !== -1) this.actividades[index] = actividad;
-        } else {
-            this.actividades.push(actividad);
-        }
-        
-        this.guardarActividades();
-        document.getElementById('modalActividad').style.display = 'none';
-        this.renderizarCalendario('calendario-actividades');
-        this.renderizarListaActividades();
-        this.actualizarEventosDestacados();
-        document.getElementById('modalDetalleActividad').style.display = 'none';
-        
-        alert(id ? 'Actividad actualizada' : 'Actividad creada');
+        procesarImagen((imagen) => {
+            const id = document.getElementById('actividad-id').value;
+            const actividad = {
+                id: id || crypto.randomUUID(),
+                titulo: document.getElementById('actividad-titulo').value,
+                descripcion: document.getElementById('actividad-descripcion').value,
+                fecha: document.getElementById('actividad-fecha').value,
+                hora: document.getElementById('actividad-hora').value || null,
+                hora_fin: document.getElementById('actividad-hora-fin').value || null,
+                tipo: document.getElementById('actividad-tipo').value,
+                curso: document.getElementById('actividad-curso').value,
+                lugar: document.getElementById('actividad-lugar').value || null,
+                organizador: document.getElementById('actividad-organizador').value || null,
+                materiales: document.getElementById('actividad-materiales').value || null,
+                requiere_inscripcion: document.getElementById('actividad-requiere-inscripcion').checked,
+                imagen: imagen
+            };
+            
+            if (id) {
+                const index = this.actividades.findIndex(a => a.id === id);
+                if (index !== -1) this.actividades[index] = actividad;
+            } else {
+                this.actividades.push(actividad);
+            }
+            
+            this.guardarActividades();
+            document.getElementById('modalActividad').style.display = 'none';
+            this.renderizarCalendario('calendario-actividades');
+            this.renderizarListaActividades();
+            this.actualizarEventosDestacados();
+            document.getElementById('modalDetalleActividad').style.display = 'none';
+
+            // Ya no se agrega notificación a la campana
+            mostrarToast(id ? 'Actividad actualizada correctamente.' : 'Actividad creada correctamente.', 'success');
+        });
     }
     
     eliminarActividad(id) {
         if (!confirm('¿Estás seguro de eliminar esta actividad?')) return;
         
-        this.actividades = this.actividades.filter(a => a.id !== id);
+        // Normalizar id a string para comparación segura
+        const idStr = String(id);
+        this.actividades = this.actividades.filter(a => String(a.id) !== idStr);
         this.guardarActividades();
         
-        document.getElementById('modalDetalleActividad').style.display = 'none';
+        const modalDetalle = document.getElementById('modalDetalleActividad');
+        if (modalDetalle) modalDetalle.style.display = 'none';
         this.renderizarCalendario('calendario-actividades');
         this.renderizarListaActividades();
         this.actualizarEventosDestacados();
+        mostrarToast('Actividad eliminada correctamente.', 'success');
     }
     
     renderizarListaActividades() {
@@ -807,11 +959,130 @@ const formLogin = document.getElementById('formLogin');
 const formRegister = document.getElementById('formRegister');
 const btnAgregarActividad = document.getElementById('btnAgregarActividad');
 const btnEditarHorario = document.getElementById('btnEditarHorario');
-const btnAgregarCalificacion = document.getElementById('btnAgregarCalificacion');
-const btnAgregarAsistencia = document.getElementById('btnAgregarAsistencia');
 const formContacto = document.getElementById('formContacto');
 const formMensaje = document.getElementById('formMensaje');
 const menuToggle = document.getElementById('menuToggle');
+
+// ===== TOAST SYSTEM (Feedback visual sin alert()) =====
+function mostrarToast(mensaje, tipo = 'success', duracion = 3500) {
+    let contenedor = document.getElementById('toast-contenedor');
+    if (!contenedor) {
+        contenedor = document.createElement('div');
+        contenedor.id = 'toast-contenedor';
+        contenedor.style.cssText = `
+            position: fixed; bottom: 2rem; right: 2rem; z-index: 9999;
+            display: flex; flex-direction: column; gap: 0.75rem;
+            pointer-events: none;
+        `;
+        document.body.appendChild(contenedor);
+    }
+
+    const iconos = { success: 'check-circle', error: 'exclamation-circle', info: 'info-circle', warning: 'exclamation-triangle' };
+    const colores = {
+        success: 'linear-gradient(135deg,#06d6a0,#05b585)',
+        error:   'linear-gradient(135deg,#ef476f,#d93a5e)',
+        info:    'linear-gradient(135deg,#4361ee,#3a56d4)',
+        warning: 'linear-gradient(135deg,#ffd166,#f4a261)'
+    };
+
+    const toast = document.createElement('div');
+    toast.style.cssText = `
+        background: ${colores[tipo] || colores.info};
+        color: white; padding: 0.9rem 1.4rem;
+        border-radius: 12px; box-shadow: 0 8px 24px rgba(0,0,0,0.2);
+        display: flex; align-items: center; gap: 0.75rem;
+        font-weight: 500; font-size: 0.92rem;
+        transform: translateX(120%); transition: transform 0.35s cubic-bezier(0.4,0,0.2,1);
+        pointer-events: auto; min-width: 240px; max-width: 340px;
+        font-family: var(--font-primary, 'Poppins', sans-serif);
+    `;
+    toast.innerHTML = `<i class="fas fa-${iconos[tipo] || 'info-circle'}" style="font-size:1.1rem;flex-shrink:0;"></i><span>${mensaje}</span>`;
+    contenedor.appendChild(toast);
+
+    requestAnimationFrame(() => {
+        requestAnimationFrame(() => { toast.style.transform = 'translateX(0)'; });
+    });
+
+    setTimeout(() => {
+        toast.style.transform = 'translateX(120%)';
+        setTimeout(() => toast.remove(), 350);
+    }, duracion);
+}
+
+// ===== NUEVA FUNCIÓN: MOSTRAR BANNER DE NOTIFICACIONES =====
+function mostrarBannerNotificaciones() {
+    if (!usuarioActual) return;
+    
+    const bannerContainer = document.getElementById('bannerNotificaciones');
+    if (!bannerContainer) return;
+    
+    const hoy = new Date();
+    hoy.setHours(0, 0, 0, 0);
+    
+    const actividadesProximas = calendarioManager.actividades.filter(act => {
+        const fechaAct = new Date(act.fecha);
+        fechaAct.setHours(0, 0, 0, 0);
+        const diffDays = Math.ceil((fechaAct - hoy) / (1000 * 60 * 60 * 24));
+        return diffDays >= 0 && diffDays <= 7;
+    }).sort((a, b) => new Date(a.fecha) - new Date(b.fecha));
+    
+    if (actividadesProximas.length === 0) {
+        bannerContainer.style.display = 'none';
+        return;
+    }
+    
+    const actividadPrincipal = actividadesProximas[0];
+    const fechaFormateada = new Date(actividadPrincipal.fecha).toLocaleDateString('es-ES', { weekday: 'long', day: 'numeric', month: 'short' });
+    
+    bannerContainer.innerHTML = `
+        <div class="banner-notificaciones">
+            <div class="banner-contenido">
+                <div class="banner-icono">
+                    <i class="fas fa-calendar-check"></i>
+                </div>
+                <div class="banner-texto">
+                    <h4>📢 ¡Próxima actividad!</h4>
+                    <p><strong>${actividadPrincipal.titulo}</strong> — ${fechaFormateada}${actividadPrincipal.hora ? ` a las ${actividadPrincipal.hora}` : ''}</p>
+                    ${actividadesProximas.length > 1 ? `<small>+ ${actividadesProximas.length - 1} actividad(es) más en los próximos días.</small>` : ''}
+                </div>
+                <button class="banner-accion" onclick="calendarioManager.mostrarDetalleFecha('${actividadPrincipal.fecha}')">
+                    Ver detalles <i class="fas fa-arrow-right"></i>
+                </button>
+            </div>
+            <button class="banner-cerrar" onclick="cerrarBannerNotificaciones()">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+    `;
+    
+    bannerContainer.style.display = 'block';
+}
+
+function cerrarBannerNotificaciones() {
+    const banner = document.getElementById('bannerNotificaciones');
+    if (banner) {
+        banner.style.display = 'none';
+    }
+}
+
+// ===== NAVEGACIÓN POR TECLADO EN MODAL IMAGEN =====
+document.addEventListener('keydown', (e) => {
+    const modal = document.getElementById('modalImagen');
+    if (!modal || modal.style.display === 'none') return;
+    if (e.key === 'ArrowLeft')  navegarImagen(-1);
+    if (e.key === 'ArrowRight') navegarImagen(1);
+    if (e.key === 'Escape') cerrarModalImagen();
+});
+
+// ===== RESTAURAR SESIÓN AL RECARGAR =====
+(function restaurarSesion() {
+    const sesionGuardada = sessionStorage.getItem('usuarioActual');
+    if (sesionGuardada) {
+        try {
+            usuarioActual = JSON.parse(sesionGuardada);
+        } catch(e) { usuarioActual = null; }
+    }
+})();
 
 // ===== FUNCIONES DE UTILIDAD =====
 function generarMenu() {
@@ -828,9 +1099,7 @@ function generarMenu() {
         items.push({ id: 'inicio', nombre: 'Inicio', icono: 'home' });
         items.push({ id: 'muestras-artisticas', nombre: 'Muestras Artísticas', icono: 'palette' });
         items.push({ id: 'cultura-deporte', nombre: 'Cultura y Deporte', icono: 'futbol' });
-        items.push({ id: 'actividades', nombre: 'Actividades', icono: 'calendar-alt' });
-        items.push({ id: 'horarios', nombre: 'Horarios', icono: 'clock' });
-        items.push({ id: 'calificaciones', nombre: 'Calificaciones', icono: 'chart-line' });
+        items.push({ id: 'actividades', nombre: 'Agenda Escolar', icono: 'calendar-alt' });
         items.push({ id: 'foro', nombre: 'Foro', icono: 'comments' });
         items.push({ id: 'sobre-nosotros', nombre: 'Sobre Nosotros', icono: 'school' });
         items.push({ id: 'contacto', nombre: 'Contacto', icono: 'envelope' });
@@ -838,9 +1107,7 @@ function generarMenu() {
         items.push({ id: 'inicio', nombre: 'Inicio', icono: 'home' });
         items.push({ id: 'muestras-artisticas', nombre: 'Muestras Artísticas', icono: 'palette' });
         items.push({ id: 'cultura-deporte', nombre: 'Cultura y Deporte', icono: 'futbol' });
-        items.push({ id: 'actividades', nombre: 'Actividades', icono: 'calendar-alt' });
-        items.push({ id: 'horarios', nombre: 'Horarios', icono: 'clock' });
-        items.push({ id: 'calificaciones', nombre: 'Calificaciones', icono: 'chart-line' });
+        items.push({ id: 'actividades', nombre: 'Agenda Escolar', icono: 'calendar-alt' });
         items.push({ id: 'foro', nombre: 'Foro', icono: 'comments' });
         items.push({ id: 'sobre-nosotros', nombre: 'Sobre Nosotros', icono: 'school' });
         items.push({ id: 'contacto', nombre: 'Contacto', icono: 'envelope' });
@@ -848,9 +1115,7 @@ function generarMenu() {
         items.push({ id: 'inicio', nombre: 'Inicio', icono: 'home' });
         items.push({ id: 'muestras-artisticas', nombre: 'Muestras Artísticas', icono: 'palette' });
         items.push({ id: 'cultura-deporte', nombre: 'Cultura y Deporte', icono: 'futbol' });
-        items.push({ id: 'actividades', nombre: 'Actividades', icono: 'calendar-alt' });
-        items.push({ id: 'horarios', nombre: 'Horarios', icono: 'clock' });
-        items.push({ id: 'calificaciones', nombre: 'Calificaciones', icono: 'chart-line' });
+        items.push({ id: 'actividades', nombre: 'Agenda Escolar', icono: 'calendar-alt' });
         items.push({ id: 'foro', nombre: 'Foro', icono: 'comments' });
         items.push({ id: 'solicitudes', nombre: 'Solicitudes', icono: 'inbox' });
         items.push({ id: 'sobre-nosotros', nombre: 'Sobre Nosotros', icono: 'school' });
@@ -898,17 +1163,23 @@ function mostrarSeccion(idSeccion) {
     if (idSeccion === 'actividades') {
         calendarioManager.renderizarCalendario('calendario-actividades');
         calendarioManager.renderizarListaActividades();
-    }
-    if (idSeccion === 'horarios') renderizarHorarios();
-    if (idSeccion === 'calificaciones') {
-        cargarSelectorEstudiantes();
-        renderizarCalificacionesYAsistencia();
+        renderizarHorarios();
+        inicializarAgendaTabs();
     }
     if (idSeccion === 'foro') renderizarForo();
-    if (idSeccion === 'solicitudes') renderizarSolicitudesAprobacion();
+    if (idSeccion === 'solicitudes') {
+        renderizarSolicitudesAprobacion();
+        const tabsContainer = document.getElementById('solicitudes');
+        const tabs = tabsContainer.querySelectorAll('.tab-btn');
+        const panels = tabsContainer.querySelectorAll('.tab-panel');
+        tabs.forEach(b => b.classList.remove('activo'));
+        panels.forEach(p => p.classList.remove('activo'));
+        if (tabs[0]) tabs[0].classList.add('activo');
+        if (panels[0]) panels[0].classList.add('activo');
+    }
     if (idSeccion === 'cultura-deporte') {
         renderizarCulturaDeporte();
-        volverACultura();
+        volverCDPrincipal();
     }
     if (idSeccion === 'muestras-artisticas') {
         renderizarMuestrasArtisticas();
@@ -922,20 +1193,18 @@ function actualizarUIporRol() {
     
     btnAgregarActividad.style.display = (rol === 'admin' || rol === 'profesor') ? 'inline-block' : 'none';
     btnEditarHorario.style.display = (rol === 'admin' || rol === 'profesor') ? 'inline-block' : 'none';
-    btnAgregarCalificacion.style.display = (rol === 'admin' || rol === 'profesor') ? 'inline-block' : 'none';
-    btnAgregarAsistencia.style.display = (rol === 'admin' || rol === 'profesor') ? 'inline-block' : 'none';
     
     document.querySelectorAll('.edit-btn').forEach(btn => btn.style.display = (rol === 'admin') ? 'inline-flex' : 'none');
     document.querySelectorAll('.edit-btn-small').forEach(btn => btn.style.display = (rol === 'admin') ? 'inline-flex' : 'none');
     
-    const selectorEstudianteContainer = document.getElementById('selector-estudiante-container');
-    if (selectorEstudianteContainer) {
-        selectorEstudianteContainer.style.display = (rol === 'admin' || rol === 'profesor') ? 'block' : 'none';
-    }
-    
     const formNuevoMensaje = document.getElementById('form-nuevo-mensaje');
     if (formNuevoMensaje) {
         formNuevoMensaje.style.display = (rol === 'estudiante') ? 'block' : 'none';
+    }
+
+    const selectorContainer = document.querySelector('#horarios .selector-grado');
+    if (selectorContainer) {
+        selectorContainer.style.display = (rol === 'estudiante') ? 'none' : 'block';
     }
 }
 
@@ -955,7 +1224,6 @@ function cargarSobreNosotros() {
     document.getElementById('mision').innerText = sn.mision || '';
     document.getElementById('vision').innerText = sn.vision || '';
     document.getElementById('valores').innerText = sn.valores || '';
-    document.getElementById('video-container').innerHTML = `<iframe width="100%" height="400" src="${sn.video || 'https://www.youtube.com/embed/dQw4w9WgXcQ'}" frameborder="0" allowfullscreen></iframe>`;
 }
 
 function cargarContacto() {
@@ -965,10 +1233,13 @@ function cargarContacto() {
     document.getElementById('contacto-direccion').innerText = contacto.direccion || '📍 Av. Siempre Viva 123';
 }
 
-// ===== MUESTRAS ARTÍSTICAS (NUEVA SECCIÓN) =====
+// ===== MUESTRAS ARTÍSTICAS =====
 function renderizarMuestrasArtisticas() {
     const muestras = JSON.parse(localStorage.getItem('muestrasArtisticas')) || {};
     const container = document.getElementById('catalogo-artistico');
+    
+    document.querySelector('.catalogo-container').style.display = 'block';
+    document.getElementById('galeria-muestras').style.display = 'none';
     
     let html = '';
     for (let key in muestras) {
@@ -978,53 +1249,390 @@ function renderizarMuestrasArtisticas() {
                  style="background-image: url('${muestra.imagen}')" 
                  onclick="mostrarGaleria('${key}')"
                  aria-label="Ver galería de ${muestra.titulo}">
+                <div class="card-desc">${muestra.descripcion || ''}</div>
                 <span>${muestra.titulo}</span>
             </div>
         `;
     }
     
     container.innerHTML = html;
-    document.getElementById('galeria-muestras').style.display = 'none';
 }
+
+window.editarCatalogoMuestras = function() {
+    if (!usuarioActual || (usuarioActual.rol !== 'admin' && usuarioActual.rol !== 'profesor')) {
+        alert('No tienes permisos para esta acción');
+        return;
+    }
+    
+    const container = document.getElementById('catalogo-artistico');
+    const btnEditar = document.getElementById('btnEditarCatalogo');
+    const isEditMode = container.querySelector('.card-edit') !== null;
+    
+    if (isEditMode) {
+        renderizarMuestrasArtisticas();
+        btnEditar.innerHTML = '<i class="fas fa-edit"></i> Editar Catálogo';
+        btnEditar.title = 'Editar tarjetas del catálogo';
+        return;
+    }
+    
+    btnEditar.innerHTML = '<i class="fas fa-eye"></i> Vista Normal';
+    btnEditar.title = 'Volver a vista normal';
+    
+    const muestras = JSON.parse(localStorage.getItem('muestrasArtisticas')) || {};
+    
+    let html = '';
+    let isFirst = true;
+    for (let key in muestras) {
+        const muestra = muestras[key];
+        const clipPath = isFirst ? 'polygon(0 0, 100% 0, 92% 100%, 0% 100%)' : 'polygon(8% 0, 100% 0, 92% 100%, 0% 100%)';
+        const marginLeft = isFirst ? '0' : '-40px';
+        
+        html += `
+            <div class="card card-edit" 
+                 style="background-image: url('${muestra.imagen}'); clip-path: ${clipPath}; margin-left: ${marginLeft};" 
+                 onclick="editarCategoriaCatalogo('${key}')"
+                 aria-label="Editar categoría ${muestra.titulo}">
+                <div class="card-edit-overlay">
+                    <i class="fas fa-edit"></i>
+                    <span>Editar</span>
+                </div>
+                <span>${muestra.titulo}</span>
+            </div>
+        `;
+        isFirst = false;
+    }
+    
+    html += `
+        <div class="card card-add" onclick="crearNuevaCategoria()">
+            <div class="card-add-content">
+                <i class="fas fa-plus"></i>
+                <span>Agregar Categoría</span>
+            </div>
+        </div>
+    `;
+    
+    container.innerHTML = html;
+    document.getElementById('galeria-muestras').style.display = 'none';
+};
+
+window.editarCategoriaCatalogo = function(categoria) {
+    const muestras = JSON.parse(localStorage.getItem('muestrasArtisticas')) || {};
+    const muestra = muestras[categoria];
+    
+    if (!muestra) return;
+    
+    const modalExistente = document.getElementById('modalEditarCategoria');
+    if (modalExistente) modalExistente.remove();
+    
+    const modalHtml = `
+        <div id="modalEditarCategoria" class="modal">
+            <div class="modal-contenido">
+                <div class="modal-header">
+                    <h2><i class="fas fa-edit"></i> Editar Categoría</h2>
+                    <span class="cerrar" onclick="cerrarModalEditarCategoria()">&times;</span>
+                </div>
+                
+                <form id="formEditarCategoria">
+                    <input type="hidden" id="categoria-editar-id" value="${categoria}">
+                    
+                    <div class="form-group">
+                        <label for="categoria-titulo">Título de la Categoría</label>
+                        <input type="text" id="categoria-titulo" value="${muestra.titulo.replace(/"/g, '&quot;')}" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>Imagen de Portada</label>
+                        <div class="imagen-opciones">
+                            <div class="opcion-imagen">
+                                <label for="categoria-imagen-local">
+                                    <i class="fas fa-image"></i> Subir desde Local
+                                </label>
+                                <input type="file" id="categoria-imagen-local" accept="image/*">
+                                <div id="preview-categoria-imagen" style="margin-top: 10px;"></div>
+                                <small>Sube una imagen desde tu dispositivo</small>
+                            </div>
+                            <div class="opcion-imagen">
+                                <label for="categoria-imagen-url">
+                                    <i class="fas fa-link"></i> URL de Imagen
+                                </label>
+                                <input type="url" id="categoria-imagen-url" placeholder="https://ejemplo.com/imagen.jpg">
+                                <small>Pega la URL de una imagen en línea</small>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="categoria-descripcion">Descripción</label>
+                        <textarea id="categoria-descripcion" rows="3" placeholder="Describe esta categoría artística...">${muestra.descripcion || ''}</textarea>
+                    </div>
+                    
+                    <div class="modal-actions">
+                        <button type="button" class="btn-danger" onclick="eliminarCategoria('${categoria}')">
+                            <i class="fas fa-trash"></i> Eliminar Categoría
+                        </button>
+                        <button type="button" class="btn-secondary" onclick="cerrarModalEditarCategoria()">
+                            <i class="fas fa-times"></i> Cancelar
+                        </button>
+                        <button type="submit" class="btn-success">
+                            <i class="fas fa-save"></i> Guardar Cambios
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    `;
+    
+    document.body.insertAdjacentHTML('beforeend', modalHtml);
+    document.getElementById('modalEditarCategoria').style.display = 'flex';
+    
+    mostrarPreviewImagen('categoria-imagen-local', 'preview-categoria-imagen');
+    
+    document.getElementById('formEditarCategoria').addEventListener('submit', function(e) {
+        e.preventDefault();
+        
+        const fileInput = document.getElementById('categoria-imagen-local');
+        const urlInput = document.getElementById('categoria-imagen-url').value;
+        
+        const guardarCategoria = (imagenUrl) => {
+            const nuevasMuestras = JSON.parse(localStorage.getItem('muestrasArtisticas')) || {};
+            nuevasMuestras[categoria] = {
+                titulo: document.getElementById('categoria-titulo').value,
+                imagen: imagenUrl || muestra.imagen,
+                descripcion: document.getElementById('categoria-descripcion').value,
+                galeria: muestra.galeria || []
+            };
+            
+            localStorage.setItem('muestrasArtisticas', JSON.stringify(nuevasMuestras));
+            cerrarModalEditarCategoria();
+            renderizarMuestrasArtisticas();
+            alert('Categoría actualizada exitosamente');
+        };
+        
+        if (fileInput.files && fileInput.files[0]) {
+            const file = fileInput.files[0];
+            if (file.size > 20 * 1024 * 1024) {
+                alert('La imagen es demasiado grande. Usa una imagen más pequeña (máx 20MB)');
+                return;
+            }
+            comprimirImagen(file, 1, (imagenComprimida) => {
+                if (imagenComprimida) {
+                    guardarCategoria(imagenComprimida);
+                } else {
+                    alert('Error al procesar la imagen');
+                }
+            });
+        } else if (urlInput) {
+            guardarCategoria(urlInput);
+        } else {
+            guardarCategoria(null);
+        }
+    });
+};
+
+window.crearNuevaCategoria = function() {
+    const categoriaId = prompt('Ingresa el ID de la nueva categoría (ej: "danza", "teatro"):');
+    if (!categoriaId) return;
+    
+    const muestras = JSON.parse(localStorage.getItem('muestrasArtisticas')) || {};
+    
+    if (muestras[categoriaId]) {
+        alert('Esta categoría ya existe');
+        return;
+    }
+    
+    muestras[categoriaId] = {
+        titulo: categoriaId.charAt(0).toUpperCase() + categoriaId.slice(1),
+        imagen: 'https://via.placeholder.com/300x200?text=Nueva+Categoría',
+        descripcion: 'Descripción de la nueva categoría',
+        galeria: []
+    };
+    
+    localStorage.setItem('muestrasArtisticas', JSON.stringify(muestras));
+    editarCatalogoMuestras();
+};
+
+window.eliminarCategoria = function(categoria) {
+    if (!confirm(`¿Estás seguro de eliminar la categoría "${categoria}"? Se perderán todas las imágenes.`)) return;
+    
+    const muestras = JSON.parse(localStorage.getItem('muestrasArtisticas')) || {};
+    delete muestras[categoria];
+    localStorage.setItem('muestrasArtisticas', JSON.stringify(muestras));
+    
+    cerrarModalEditarCategoria();
+    renderizarMuestrasArtisticas();
+};
+
+window.cerrarModalEditarCategoria = function() {
+    const modal = document.getElementById('modalEditarCategoria');
+    if (modal) {
+        modal.remove();
+    }
+    renderizarMuestrasArtisticas();
+    const btnEditar = document.getElementById('btnEditarCatalogo');
+    if (btnEditar) {
+        btnEditar.innerHTML = '<i class="fas fa-edit"></i> Editar Catálogo';
+        btnEditar.title = 'Editar tarjetas del catálogo';
+    }
+};
 
 window.mostrarGaleria = function(categoria) {
     const muestras = JSON.parse(localStorage.getItem('muestrasArtisticas')) || {};
     const muestra = muestras[categoria];
+    
+    if (!muestra) {
+        alert('Categoría no encontrada');
+        return;
+    }
     
     document.getElementById('titulo-galeria').textContent = muestra.titulo;
     
     const galeriaContainer = document.getElementById('galeria-imagenes');
     galeriaContainer.innerHTML = '';
     
-    muestra.galeria.forEach((img, index) => {
-        const item = document.createElement('div');
-        item.className = 'galeria-item';
-        item.onclick = () => abrirModalImagen(img.url);
-        
-        const imagen = document.createElement('img');
-        imagen.src = img.url;
-        imagen.alt = `${muestra.titulo} - Imagen ${index + 1}`;
-        imagen.loading = 'lazy';
-        
-        item.appendChild(imagen);
-        galeriaContainer.appendChild(item);
-    });
+    if (muestra.galeria && muestra.galeria.length > 0) {
+        muestra.galeria.forEach((img, index) => {
+            const item = document.createElement('div');
+            item.className = 'galeria-item';
+            
+            const imagen = document.createElement('img');
+            imagen.src = img.url;
+            imagen.alt = `${muestra.titulo} - ${img.descripcion || `Imagen ${index + 1}`}`;
+            imagen.loading = 'lazy';
+            
+            const descripcion = document.createElement('div');
+            descripcion.className = 'galeria-descripcion';
+            descripcion.textContent = img.descripcion || `Imagen ${index + 1}`;
+            
+            if (usuarioActual && (usuarioActual.rol === 'admin' || usuarioActual.rol === 'profesor')) {
+                const accionesContainer = document.createElement('div');
+                accionesContainer.className = 'galeria-acciones';
+                
+                const editarBtn = document.createElement('button');
+                editarBtn.className = 'btn-accion editar';
+                editarBtn.innerHTML = '<i class="fas fa-edit"></i>';
+                editarBtn.title = 'Editar descripción';
+                editarBtn.type = 'button';
+                editarBtn.style.cursor = 'pointer';
+                editarBtn.onclick = function(e) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    abrirModalEditarImagen(categoria, index);
+                    return false;
+                };
+                
+                const eliminarBtn = document.createElement('button');
+                eliminarBtn.className = 'btn-accion eliminar';
+                eliminarBtn.innerHTML = '<i class="fas fa-trash"></i>';
+                eliminarBtn.title = 'Eliminar imagen';
+                eliminarBtn.type = 'button';
+                eliminarBtn.style.cursor = 'pointer';
+                eliminarBtn.onclick = function(e) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    eliminarImagenGaleria(categoria, index);
+                    return false;
+                };
+                
+                accionesContainer.appendChild(editarBtn);
+                accionesContainer.appendChild(eliminarBtn);
+                item.appendChild(accionesContainer);
+            }
+            
+            item.appendChild(imagen);
+            item.appendChild(descripcion);
+            item.onclick = () => abrirModalImagen(img.url, img.descripcion || `Imagen ${index + 1}`, muestra.galeria, index);
+            
+            galeriaContainer.appendChild(item);
+        });
+    }
     
-    document.getElementById('catalogo-artistico').parentElement.style.display = 'none';
+    if (usuarioActual && (usuarioActual.rol === 'admin' || usuarioActual.rol === 'profesor')) {
+        const addButton = document.createElement('div');
+        addButton.className = 'galeria-item add-item';
+        addButton.innerHTML = `
+            <div class="add-content">
+                <i class="fas fa-plus"></i>
+                <span>Agregar Imagen</span>
+            </div>
+        `;
+        addButton.onclick = () => abrirModalAgregarImagen(categoria);
+        galeriaContainer.appendChild(addButton);
+    }
+    
+    document.querySelector('.catalogo-container').style.display = 'none';
     document.getElementById('galeria-muestras').style.display = 'block';
 };
 
 window.volverCatalogo = function() {
-    document.getElementById('catalogo-artistico').parentElement.style.display = 'block';
+    document.querySelector('.catalogo-container').style.display = 'block';
     document.getElementById('galeria-muestras').style.display = 'none';
+    renderizarMuestrasArtisticas();
 };
 
-window.abrirModalImagen = function(url) {
+window.abrirModalAgregarImagen = function(categoria) {
+    if (!usuarioActual || (usuarioActual.rol !== 'admin' && usuarioActual.rol !== 'profesor')) {
+        alert('No tienes permisos para esta acción');
+        return;
+    }
+    
+    document.getElementById('formAgregarImagen').reset();
+    document.getElementById('preview-imagen-file').innerHTML = '';
+    document.getElementById('categoria-imagen').value = categoria;
+    document.getElementById('modalAgregarImagen').style.display = 'flex';
+};
+
+let galeriaNavActual = { imagenes: [], indice: 0 };
+
+window.abrirModalImagen = function(url, descripcion, imagenes, indice) {
     const modal = document.getElementById('modalImagen');
     const imagen = document.getElementById('imagenAmpliada');
-    imagen.src = url;
+    const descripcionEl = document.getElementById('imagen-descripcion');
+    const contador = document.getElementById('imagen-contador');
+
+    if (imagenes && imagenes.length) {
+        galeriaNavActual.imagenes = imagenes;
+        galeriaNavActual.indice = indice ?? 0;
+    } else {
+        galeriaNavActual.imagenes = [{ url, descripcion }];
+        galeriaNavActual.indice = 0;
+    }
+
+    const actual = galeriaNavActual.imagenes[galeriaNavActual.indice];
+    imagen.src = actual.url;
+    descripcionEl.textContent = actual.descripcion || '';
+
+    if (galeriaNavActual.imagenes.length > 1) {
+        contador.textContent = `${galeriaNavActual.indice + 1} / ${galeriaNavActual.imagenes.length}`;
+        contador.style.display = 'flex';
+    } else {
+        contador.style.display = 'none';
+    }
+
+    const prev = document.querySelector('.img-nav-prev');
+    const next = document.querySelector('.img-nav-next');
+    if (prev) prev.style.display = galeriaNavActual.imagenes.length > 1 ? 'flex' : 'none';
+    if (next) next.style.display = galeriaNavActual.imagenes.length > 1 ? 'flex' : 'none';
+
     modal.style.display = 'flex';
     document.body.style.overflow = 'hidden';
+};
+
+window.navegarImagen = function(dir) {
+    const total = galeriaNavActual.imagenes.length;
+    if (total <= 1) return;
+    galeriaNavActual.indice = (galeriaNavActual.indice + dir + total) % total;
+    const actual = galeriaNavActual.imagenes[galeriaNavActual.indice];
+    const imagen = document.getElementById('imagenAmpliada');
+    const descripcionEl = document.getElementById('imagen-descripcion');
+    const contador = document.getElementById('imagen-contador');
+
+    imagen.style.opacity = '0';
+    setTimeout(() => {
+        imagen.src = actual.url;
+        descripcionEl.textContent = actual.descripcion || '';
+        contador.textContent = `${galeriaNavActual.indice + 1} / ${total}`;
+        imagen.style.opacity = '1';
+    }, 150);
 };
 
 window.cerrarModalImagen = function() {
@@ -1032,403 +1640,912 @@ window.cerrarModalImagen = function() {
     document.body.style.overflow = 'auto';
 };
 
+window.abrirModalEditarImagen = function(categoria, index) {
+    if (!usuarioActual || (usuarioActual.rol !== 'admin' && usuarioActual.rol !== 'profesor')) {
+        alert('No tienes permisos para esta acción');
+        return;
+    }
+    
+    const muestras = JSON.parse(localStorage.getItem('muestrasArtisticas')) || {};
+    const imagen = muestras[categoria].galeria[index];
+    
+    document.getElementById('categoria-editar').value = categoria;
+    document.getElementById('index-editar').value = index;
+    document.getElementById('descripcion-editar').value = imagen.descripcion || '';
+    
+    document.getElementById('imagen-editar-local').value = '';
+    document.getElementById('imagen-editar-url').value = '';
+    document.getElementById('preview-imagen-editar-local').innerHTML = '';
+    
+    document.getElementById('modalEditarImagen').style.display = 'flex';
+};
+
+window.eliminarImagenGaleria = function(categoria, index) {
+    if (!usuarioActual || (usuarioActual.rol !== 'admin' && usuarioActual.rol !== 'profesor')) {
+        alert('No tienes permisos para esta acción');
+        return;
+    }
+    
+    if (confirm('¿Estás seguro de que quieres eliminar esta imagen?')) {
+        const muestras = JSON.parse(localStorage.getItem('muestrasArtisticas')) || {};
+        if (muestras[categoria] && muestras[categoria].galeria[index]) {
+            muestras[categoria].galeria.splice(index, 1);
+            localStorage.setItem('muestrasArtisticas', JSON.stringify(muestras));
+            mostrarGaleria(categoria);
+            alert('Imagen eliminada exitosamente');
+        }
+    }
+};
+
+document.getElementById('formEditarImagen').addEventListener('submit', function(e) {
+    e.preventDefault();
+    
+    const categoria = document.getElementById('categoria-editar').value;
+    const index = parseInt(document.getElementById('index-editar').value);
+    const nuevaDescripcion = document.getElementById('descripcion-editar').value;
+    const fileInput = document.getElementById('imagen-editar-local');
+    const urlInput = document.getElementById('imagen-editar-url').value;
+    
+    const muestras = JSON.parse(localStorage.getItem('muestrasArtisticas')) || {};
+    if (muestras[categoria] && muestras[categoria].galeria[index]) {
+        const actualizarImagen = (nuevaUrl) => {
+            if (nuevaUrl) {
+                muestras[categoria].galeria[index].url = nuevaUrl;
+            }
+            muestras[categoria].galeria[index].descripcion = nuevaDescripcion;
+            
+            localStorage.setItem('muestrasArtisticas', JSON.stringify(muestras));
+            document.getElementById('modalEditarImagen').style.display = 'none';
+            mostrarGaleria(categoria);
+            alert('Imagen actualizada exitosamente');
+        };
+        
+        if (fileInput.files && fileInput.files[0]) {
+            const file = fileInput.files[0];
+            if (file.size > 20 * 1024 * 1024) {
+                alert('La imagen es demasiado grande. Usa una imagen más pequeña (máx 20MB)');
+                return;
+            }
+            comprimirImagen(file, 1, (imagenComprimida) => {
+                if (imagenComprimida) {
+                    actualizarImagen(imagenComprimida);
+                } else {
+                    alert('Error al procesar la imagen');
+                }
+            });
+        } else if (urlInput) {
+            actualizarImagen(urlInput);
+        } else {
+            actualizarImagen(null);
+        }
+    }
+});
+
+document.getElementById('cerrarModalAgregarImagen').addEventListener('click', () => {
+    document.getElementById('modalAgregarImagen').style.display = 'none';
+});
+
+document.getElementById('formAgregarImagen').addEventListener('submit', function(e) {
+    e.preventDefault();
+    
+    const categoria = document.getElementById('categoria-imagen').value;
+    const fileInput = document.getElementById('imagen-file');
+    const descripcion = document.getElementById('imagen-descripcion-input').value;
+    
+    if (!categoria) {
+        alert('Error: no se pudo determinar la categoría. Cierra y vuelve a abrir el editor.');
+        return;
+    }
+    
+    if (!fileInput.files || !fileInput.files[0]) {
+        alert('Por favor selecciona una imagen');
+        return;
+    }
+    
+    const file = fileInput.files[0];
+    
+    if (file.size > 20 * 1024 * 1024) {
+        alert('La imagen es demasiado grande (máx 20MB). Por favor usa una imagen más pequeña o una URL en su lugar.');
+        return;
+    }
+    
+    comprimirImagen(file, 1, (imagenComprimida) => {
+        if (!imagenComprimida) {
+            alert('Error al procesar la imagen');
+            return;
+        }
+        
+        try {
+            const muestras = JSON.parse(localStorage.getItem('muestrasArtisticas')) || {};
+            if (!muestras[categoria]) {
+                alert('Error: categoría no encontrada.');
+                return;
+            }
+            
+            const nuevoDato = JSON.stringify({ url: imagenComprimida, descripcion: descripcion });
+            if (!verificarStorageAntesDeGuardar(nuevoDato, "imagen")) {
+                return;
+            }
+            
+            muestras[categoria].galeria.push({
+                url: imagenComprimida,
+                descripcion: descripcion
+            });
+            
+            localStorage.setItem('muestrasArtisticas', JSON.stringify(muestras));
+            
+            document.getElementById('modalAgregarImagen').style.display = 'none';
+            document.getElementById('formAgregarImagen').reset();
+            document.getElementById('preview-imagen-file').innerHTML = '';
+            mostrarGaleria(categoria);
+            alert('Imagen agregada exitosamente');
+            
+            mostrarAdvertenciaStorage();
+        } catch (err) {
+            if (err.name === 'QuotaExceededError') {
+                alert('❌ No hay suficiente espacio en el almacenamiento. Elimina algunas imágenes existentes o usa URLs en lugar de imágenes locales.');
+            } else {
+                alert('Error inesperado: ' + err.message);
+            }
+        }
+    });
+});
+
 // ===== CULTURA Y DEPORTE =====
 function renderizarCulturaDeporte() {
     const data = JSON.parse(localStorage.getItem('culturaDeporte')) || {};
     const container = document.getElementById('cultura-deporte-container');
-    
-    let html = `
-        <div class="cultura-deporte-grid">
-            <div class="cultura-card" style="background-image: linear-gradient(135deg, ${data.cultura.color}, #104e8b), url('${data.cultura.imagen}'); background-blend-mode: overlay;" onclick="verCategoria('cultura')">
-                <div class="cultura-card-overlay">
-                    <i class="fas fa-${data.cultura.icono}"></i>
-                    <h3>${data.cultura.titulo}</h3>
-                    <p>${data.cultura.descripcion}</p>
-                </div>
-            </div>
-            <div class="cultura-card" style="background-image: linear-gradient(135deg, ${data.deporte.color}, #e67e22), url('${data.deporte.imagen}'); background-blend-mode: overlay;" onclick="verCategoria('deporte')">
-                <div class="cultura-card-overlay">
-                    <i class="fas fa-${data.deporte.icono}"></i>
-                    <h3>${data.deporte.titulo}</h3>
-                    <p>${data.deporte.descripcion}</p>
-                </div>
-            </div>
-        </div>
-    `;
 
-    if (usuarioActual && usuarioActual.rol === 'admin') {
-        html += `<div style="text-align: center; margin-top: 2rem;">
-            <button class="btn-warning" onclick="abrirEditorCultura()"><i class="fas fa-edit"></i> Editar Sección</button>
-        </div>`;
+    if (!data.cultura || !data.deporte) {
+        container.innerHTML = '<p style="text-align: center; color: #666; padding: 2rem;">Cargando...</p>';
+        return;
     }
 
-    container.innerHTML = html;
+    // Encabezado con botón editar (solo admin)
+    const btnEditar = (usuarioActual && usuarioActual.rol === 'admin')
+        ? `<span class="edit-btn" id="btnEditarCD" onclick="editarModoCD()" title="Editar catálogo" style="display:inline-flex;">
+               <i class="fas fa-edit"></i>
+           </span>`
+        : '';
+
+    // Catálogo tipo muestras artísticas
+    const tipos = Object.keys(data);
+    let cards = '';
+    tipos.forEach((tipo, i) => {
+        const cat = data[tipo];
+        const isFirst = i === 0;
+        const isLast = i === tipos.length - 1;
+        const clip = isFirst
+            ? 'polygon(0 0, 100% 0, 92% 100%, 0% 100%)'
+            : isLast
+                ? 'polygon(8% 0, 100% 0, 100% 100%, 0% 100%)'
+                : 'polygon(8% 0, 100% 0, 92% 100%, 0% 100%)';
+        const ml = isFirst ? '0' : '-50px';
+        cards += `
+            <div class="card cd-card"
+                 style="background-image: url('${cat.imagen || ''}'); clip-path: ${clip}; margin-left: ${ml};"
+                 onclick="mostrarSubcategorias('${tipo}')"
+                 aria-label="Ver ${cat.titulo}">
+                <span>${cat.titulo || tipo}</span>
+            </div>`;
+    });
+
+    container.innerHTML = `
+        <div class="cd-header-bar">
+            ${btnEditar}
+        </div>
+        <div class="catalogo cd-catalogo">
+            ${cards}
+        </div>`;
 }
 
-window.verCategoria = function(tipo) {
+window.editarModoCD = function() {
+    if (!usuarioActual || usuarioActual.rol !== 'admin') {
+        alert('No tienes permisos');
+        return;
+    }
+
+    const container = document.getElementById('cultura-deporte-container');
+    const isEditMode = container.querySelector('.card-edit') !== null;
+
+    if (isEditMode) {
+        renderizarCulturaDeporte();
+        return;
+    }
+
     const data = JSON.parse(localStorage.getItem('culturaDeporte')) || {};
-    const categoria = data[tipo];
-    
-    let categoriasHtml = '';
-    for (let key in categoria.categorias) {
-        const sub = categoria.categorias[key];
-        categoriasHtml += `
-            <div class="subcategoria-card" style="background-image: linear-gradient(135deg, ${data[tipo].color}, #104e8b), url('${sub.imagen}'); background-blend-mode: overlay;" onclick="verSubcategoria('${tipo}', '${key}')">
-                <div class="subcategoria-overlay">
-                    <h4>${sub.nombre}</h4>
+    if (!data.cultura || !data.deporte) {
+        alert('Datos no disponibles');
+        return;
+    }
+
+    const btnEditar = document.getElementById('btnEditarCD');
+    if (btnEditar) {
+        btnEditar.innerHTML = '<i class="fas fa-eye"></i>';
+        btnEditar.title = 'Vista normal';
+    }
+
+    const tipos = Object.keys(data);
+    let cards = '';
+    tipos.forEach((tipo, i) => {
+        const cat = data[tipo];
+        const isFirst = i === 0;
+        const isLast = i === tipos.length - 1;
+        const clip = isFirst
+            ? 'polygon(0 0, 100% 0, 92% 100%, 0% 100%)'
+            : isLast
+                ? 'polygon(8% 0, 100% 0, 100% 100%, 0% 100%)'
+                : 'polygon(8% 0, 100% 0, 92% 100%, 0% 100%)';
+        const ml = isFirst ? '0' : '-50px';
+        const esc = tipo.replace(/'/g, "\'");
+        cards += `
+            <div class="card card-edit cd-card"
+                 style="background-image: url('${cat.imagen || ''}'); clip-path: ${clip}; margin-left: ${ml};"
+                 onclick="abrirEditorCD('${esc}')"
+                 aria-label="Editar ${cat.titulo}">
+                <div class="card-edit-overlay">
+                    <i class="fas fa-edit"></i>
+                    <span>Editar</span>
                 </div>
+                <span>${cat.titulo || tipo}</span>
+            </div>`;
+    });
+
+    // Catálogo reutiliza el mismo wrapper
+    const catalogoEl = container.querySelector('.cd-catalogo');
+    if (catalogoEl) {
+        catalogoEl.innerHTML = cards;
+    }
+};
+
+window.abrirEditorCD = function(tipo) {
+    const data = JSON.parse(localStorage.getItem('culturaDeporte')) || {};
+    const cat = data[tipo];
+    
+    if (!cat || !cat.subcategorias) {
+        alert('Los datos de ' + tipo + ' no están disponibles');
+        return;
+    }
+    
+    let subHtml = '';
+    for (let key in cat.subcategorias) {
+        const sub = cat.subcategorias[key];
+        const escapedTipo = tipo.replace(/'/g, "\\'");
+        const escapedKey = key.replace(/'/g, "\\'");
+        subHtml += `
+            <div style="padding: 1rem; border: 1px solid #eee; border-radius: 8px; margin-bottom: 1rem;">
+                <h4>${sub.titulo}</h4>
+                <button class="btn-warning btn-small" onclick="abrirEditorSubCD('${escapedTipo}', '${escapedKey}')"><i class="fas fa-edit"></i> Editar</button>
             </div>
         `;
     }
-
-    document.getElementById('categoria-detalle-container').innerHTML = `
-        <div class="categoria-header">
-            <button class="btn-back" onclick="volverACultura()"><i class="fas fa-arrow-left"></i> Volver</button>
-            <h2>${categoria.titulo}</h2>
-            <p>${categoria.descripcion}</p>
+    
+    const modalExistente = document.getElementById('modalEditorCD');
+    if (modalExistente) modalExistente.remove();
+    
+    const modal = `
+        <div id="modalEditorCD" class="modal">
+            <div class="modal-contenido">
+                <div class="modal-header">
+                    <h2>Editar ${tipo === 'cultura' ? 'Cultura' : 'Deporte'}</h2>
+                    <span class="cerrar" onclick="document.getElementById('modalEditorCD').remove()">&times;</span>
+                </div>
+                <form id="formEditorCD">
+                    <input type="hidden" value="${tipo}" id="tipoCD">
+                    
+                    <div class="form-group">
+                        <label>Título</label>
+                        <input type="text" id="tituloCDEdit">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>Descripción</label>
+                        <textarea id="descCDEdit" rows="2"></textarea>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>Imagen Principal</label>
+                        <div style="display: flex; gap: 1rem; flex-direction: column;">
+                            <input type="file" id="imagenCDFile" accept="image/*">
+                            <input type="url" id="imagenCDUrl" placeholder="O URL...">
+                        </div>
+                    </div>
+                    
+                    <h3 style="margin-top: 2rem;">Subcategorías</h3>
+                    <div id="listaSubCD">${subHtml}</div>
+                    
+                    <div class="modal-actions">
+                        <button type="submit" class="btn-success"><i class="fas fa-save"></i> Guardar</button>
+                        <button type="button" class="btn-secondary" onclick="document.getElementById('modalEditorCD').remove()"><i class="fas fa-times"></i> Cerrar</button>
+                    </div>
+                </form>
+            </div>
         </div>
-        <div class="subcategorias-grid">${categoriasHtml}</div>
     `;
+    
+    document.body.insertAdjacentHTML('beforeend', modal);
+    document.getElementById('modalEditorCD').style.display = 'flex';
+    
+    document.getElementById('tituloCDEdit').value = cat.titulo || '';
+    document.getElementById('descCDEdit').value = cat.descripcion || '';
+    
+    document.getElementById('formEditorCD').addEventListener('submit', function(e) {
+        e.preventDefault();
+        
+        const fileInput = document.getElementById('imagenCDFile');
+        const urlInput = document.getElementById('imagenCDUrl').value;
+        
+        const guardarCD = (img) => {
+            const dataActual = JSON.parse(localStorage.getItem('culturaDeporte')) || {};
+            const t = document.getElementById('tipoCD').value;
+            dataActual[t].titulo = document.getElementById('tituloCDEdit').value;
+            dataActual[t].descripcion = document.getElementById('descCDEdit').value;
+            if (img) dataActual[t].imagen = img;
+            
+            localStorage.setItem('culturaDeporte', JSON.stringify(dataActual));
+            document.getElementById('modalEditorCD').remove();
+            renderizarCulturaDeporte();
+            alert('Cambios guardados exitosamente');
+        };
+        
+        if (fileInput.files[0]) {
+            const file = fileInput.files[0];
+            comprimirImagen(file, 1, (imagenComprimida) => {
+                guardarCD(imagenComprimida);
+            });
+        } else if (urlInput) {
+            guardarCD(urlInput);
+        } else {
+            guardarCD(null);
+        }
+    });
+};
 
+window.abrirEditorSubCD = function(tipo, key) {
+    const data = JSON.parse(localStorage.getItem('culturaDeporte')) || {};
+    
+    if (!data[tipo] || !data[tipo].subcategorias || !data[tipo].subcategorias[key]) {
+        alert('Los datos de la subcategoría no están disponibles');
+        return;
+    }
+    
+    const sub = data[tipo].subcategorias[key];
+    
+    let galHtml = '';
+    if (sub.galeria) {
+        sub.galeria.forEach((img, i) => {
+            const escapedTipo = tipo.replace(/'/g, "\\'");
+            const escapedKey = key.replace(/'/g, "\\'");
+            galHtml += `
+                <div style="position: relative; border-radius: 8px; overflow: hidden; aspect-ratio: 1; border: 1px solid #ddd;">
+                    <img src="${img.url}" style="width: 100%; height: 100%; object-fit: cover;">
+                    <button type="button" class="btn-warning btn-small" onclick="editarImagenCD('${escapedTipo}', '${escapedKey}', ${i})" style="position: absolute; top: 5px; right: 5px;">
+                        <i class="fas fa-edit"></i>
+                    </button>
+                    <button type="button" class="btn-danger btn-small" onclick="eliminarImagenCD('${escapedTipo}', '${escapedKey}', ${i})" style="position: absolute; top: 5px; right: 40px;">
+                        <i class="fas fa-trash"></i>
+                    </button>
+                </div>
+            `;
+        });
+    }
+    
+    const escapedTipo = tipo.replace(/'/g, "\\'");
+    const escapedKey = key.replace(/'/g, "\\'");
+    galHtml += `
+        <div style="border: 2px dashed #ccc; border-radius: 8px; aspect-ratio: 1; display: flex; align-items: center; justify-content: center; cursor: pointer;" onclick="abrirAgregarImagenCD('${escapedTipo}', '${escapedKey}')">
+            <button type="button" style="background: none; border: none; color: #666; font-size: 2rem; cursor: pointer; pointer-events: none;">
+                <i class="fas fa-plus"></i>
+            </button>
+        </div>
+    `;
+    
+    const modalExistente = document.getElementById('modalSubCD');
+    if (modalExistente) modalExistente.remove();
+    
+    const modal = `
+        <div id="modalSubCD" class="modal">
+            <div class="modal-contenido">
+                <div class="modal-header">
+                    <h2>Editar ${sub.titulo}</h2>
+                    <span class="cerrar" onclick="document.getElementById('modalSubCD').remove()">&times;</span>
+                </div>
+                <form id="formSubCD">
+                    <input type="hidden" value="${tipo}" id="tipoSubCD">
+                    <input type="hidden" value="${key}" id="keySubCD">
+                    
+                    <div class="form-group">
+                        <label>Título</label>
+                        <input type="text" id="tituloSubCD">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>Información</label>
+                        <textarea id="infoSubCD" rows="3"></textarea>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>Imagen Principal</label>
+                        <div style="display: flex; gap: 1rem; flex-direction: column;">
+                            <input type="file" id="imagenSubFile" accept="image/*">
+                            <input type="url" id="imagenSubUrl" placeholder="O URL...">
+                        </div>
+                    </div>
+                    
+                    <h3 style="margin-top: 2rem;">Galería</h3>
+                    <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); gap: 1rem;">
+                        ${galHtml}
+                    </div>
+                    
+                    <div class="modal-actions">
+                        <button type="submit" class="btn-success"><i class="fas fa-save"></i> Guardar</button>
+                        <button type="button" class="btn-secondary" onclick="document.getElementById('modalSubCD').remove()"><i class="fas fa-times"></i> Cerrar</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    `;
+    
+    document.body.insertAdjacentHTML('beforeend', modal);
+    document.getElementById('modalSubCD').style.display = 'flex';
+    
+    document.getElementById('tituloSubCD').value = sub.titulo || '';
+    document.getElementById('infoSubCD').value = sub.informacion || '';
+    
+    document.getElementById('formSubCD').addEventListener('submit', function(e) {
+        e.preventDefault();
+        
+        const fileInput = document.getElementById('imagenSubFile');
+        const urlInput = document.getElementById('imagenSubUrl').value;
+        
+        const guardarSub = (img) => {
+            const dataActual = JSON.parse(localStorage.getItem('culturaDeporte')) || {};
+            const t = document.getElementById('tipoSubCD').value;
+            const k = document.getElementById('keySubCD').value;
+            
+            dataActual[t].subcategorias[k].titulo = document.getElementById('tituloSubCD').value;
+            dataActual[t].subcategorias[k].informacion = document.getElementById('infoSubCD').value;
+            if (img) dataActual[t].subcategorias[k].imagen = img;
+            
+            localStorage.setItem('culturaDeporte', JSON.stringify(dataActual));
+            document.getElementById('modalSubCD').remove();
+            renderizarCulturaDeporte();
+            alert('Subcategoría guardada exitosamente');
+        };
+        
+        if (fileInput.files[0]) {
+            const file = fileInput.files[0];
+            comprimirImagen(file, 1, (imagenComprimida) => {
+                guardarSub(imagenComprimida);
+            });
+        } else if (urlInput) {
+            guardarSub(urlInput);
+        } else {
+            guardarSub(null);
+        }
+    });
+};
+
+window.editarImagenCD = function(tipo, key, idx) {
+    const data = JSON.parse(localStorage.getItem('culturaDeporte')) || {};
+    
+    if (!data[tipo] || !data[tipo].subcategorias || !data[tipo].subcategorias[key] || 
+        !data[tipo].subcategorias[key].galeria || !data[tipo].subcategorias[key].galeria[idx]) {
+        alert('Los datos de la imagen no están disponibles');
+        return;
+    }
+    
+    const img = data[tipo].subcategorias[key].galeria[idx];
+    
+    const modalExistente = document.getElementById('modalEditImgCD');
+    if (modalExistente) modalExistente.remove();
+    
+    const modal = document.createElement('div');
+    modal.className = 'modal';
+    modal.id = 'modalEditImgCD';
+    
+    let html = '<div class="modal-contenido">';
+    html += '<div class="modal-header">';
+    html += '<h2>Editar Imagen</h2>';
+    html += '<span class="cerrar" onclick="document.getElementById(\'modalEditImgCD\').remove()">&times;</span>';
+    html += '</div>';
+    html += '<form id="formEditImgCD">';
+    html += '<input type="hidden" value="' + tipo + '" id="tipoEditImg">';
+    html += '<input type="hidden" value="' + key + '" id="keyEditImg">';
+    html += '<input type="hidden" value="' + idx + '" id="idxEditImg">';
+    
+    html += '<div class="form-group">';
+    html += '<label>Imagen</label>';
+    html += '<div style="display: flex; gap: 1rem; flex-direction: column;">';
+    html += '<input type="file" id="fileEditImg" accept="image/*">';
+    html += '<div id="preview-fileEditImg" style="margin-top: 10px;"></div>';
+    html += '<input type="url" id="urlEditImg" placeholder="O ingresa URL de imagen...">';
+    html += '</div>';
+    html += '</div>';
+    
+    html += '<div class="form-group">';
+    html += '<label>Descripción (texto debajo de la imagen)</label>';
+    html += '<textarea id="descEditImg" rows="3" placeholder="Describe esta imagen..."></textarea>';
+    html += '</div>';
+    
+    html += '<div class="modal-actions">';
+    html += '<button type="submit" class="btn-success"><i class="fas fa-save"></i> Guardar</button>';
+    html += '<button type="button" class="btn-secondary" onclick="document.getElementById(\'modalEditImgCD\').remove()"><i class="fas fa-times"></i> Cerrar</button>';
+    html += '</div>';
+    html += '</form>';
+    html += '</div>';
+    
+    modal.innerHTML = html;
+    document.body.appendChild(modal);
+    modal.style.display = 'flex';
+    
+    mostrarPreviewImagen('fileEditImg', 'preview-fileEditImg');
+    
+    document.getElementById('descEditImg').value = img.descripcion || '';
+    
+    document.getElementById('formEditImgCD').addEventListener('submit', function(e) {
+        e.preventDefault();
+        
+        const fileInput = document.getElementById('fileEditImg');
+        const urlInput = document.getElementById('urlEditImg').value.trim();
+        const desc = document.getElementById('descEditImg').value.trim();
+        
+        const guardarImg = function(url) {
+            try {
+                const dataActual = JSON.parse(localStorage.getItem('culturaDeporte')) || {};
+                const t = document.getElementById('tipoEditImg').value;
+                const k = document.getElementById('keyEditImg').value;
+                const i = parseInt(document.getElementById('idxEditImg').value);
+                
+                if (url) {
+                    dataActual[t].subcategorias[k].galeria[i].url = url;
+                }
+                dataActual[t].subcategorias[k].galeria[i].descripcion = desc;
+                
+                localStorage.setItem('culturaDeporte', JSON.stringify(dataActual));
+                
+                if (document.getElementById('modalEditImgCD')) {
+                    document.getElementById('modalEditImgCD').remove();
+                }
+                mostrarGaleriaCD(t, k);
+                alert('Imagen actualizada correctamente');
+            } catch (error) {
+                console.error('Error al guardar:', error);
+                alert('Error al guardar: ' + error.message);
+            }
+        };
+        
+        if (fileInput.files && fileInput.files[0]) {
+            const file = fileInput.files[0];
+            comprimirImagen(file, 1, (imagenComprimida) => {
+                guardarImg(imagenComprimida);
+            });
+        } else if (urlInput) {
+            guardarImg(urlInput);
+        } else {
+            guardarImg(null);
+        }
+    });
+};
+
+window.abrirAgregarImagenCD = function(tipo, key) {
+    const modalExistente = document.getElementById('modalAgrImgCD');
+    if (modalExistente) modalExistente.remove();
+    
+    const modal = document.createElement('div');
+    modal.className = 'modal';
+    modal.id = 'modalAgrImgCD';
+    
+    let html = '<div class="modal-contenido">';
+    html += '<div class="modal-header">';
+    html += '<h2>Agregar Nueva Imagen</h2>';
+    html += '<span class="cerrar" onclick="document.getElementById(\'modalAgrImgCD\').remove()">&times;</span>';
+    html += '</div>';
+    html += '<form id="formAgrImgCD">';
+    html += '<input type="hidden" value="' + tipo + '" id="tipoAgrImg">';
+    html += '<input type="hidden" value="' + key + '" id="keyAgrImg">';
+    
+    html += '<div class="form-group">';
+    html += '<label>Imagen</label>';
+    html += '<div style="display: flex; gap: 1rem; flex-direction: column;">';
+    html += '<input type="file" id="fileAgrImg" accept="image/*">';
+    html += '<div id="preview-fileAgrImg" style="margin-top: 10px;"></div>';
+    html += '<small>O pega una URL aquí:</small>';
+    html += '<input type="url" id="urlAgrImg" placeholder="https://ejemplo.com/imagen.jpg">';
+    html += '</div>';
+    html += '</div>';
+    
+    html += '<div class="form-group">';
+    html += '<label>Descripción (texto debajo de la imagen)</label>';
+    html += '<textarea id="descAgrImg" rows="3" placeholder="Describe esta imagen..."></textarea>';
+    html += '</div>';
+    
+    html += '<div class="modal-actions">';
+    html += '<button type="submit" class="btn-success"><i class="fas fa-plus"></i> Agregar</button>';
+    html += '<button type="button" class="btn-secondary" onclick="document.getElementById(\'modalAgrImgCD\').remove()"><i class="fas fa-times"></i> Cerrar</button>';
+    html += '</div>';
+    html += '</form>';
+    html += '</div>';
+    
+    modal.innerHTML = html;
+    document.body.appendChild(modal);
+    modal.style.display = 'flex';
+    
+    mostrarPreviewImagen('fileAgrImg', 'preview-fileAgrImg');
+    
+    document.getElementById('formAgrImgCD').addEventListener('submit', function(e) {
+        e.preventDefault();
+        
+        const fileInput = document.getElementById('fileAgrImg');
+        const urlInput = document.getElementById('urlAgrImg').value.trim();
+        const desc = document.getElementById('descAgrImg').value.trim();
+        
+        const guardarImg = function(url) {
+            try {
+                if (!url) {
+                    alert('Debes seleccionar una imagen o ingresar una URL');
+                    return;
+                }
+                
+                const dataActual = JSON.parse(localStorage.getItem('culturaDeporte')) || {};
+                const t = document.getElementById('tipoAgrImg').value;
+                const k = document.getElementById('keyAgrImg').value;
+                
+                if (!dataActual[t] || !dataActual[t].subcategorias || !dataActual[t].subcategorias[k]) {
+                    alert('No se pudo encontrar la subcategoría');
+                    return;
+                }
+                
+                if (!dataActual[t].subcategorias[k].galeria) {
+                    dataActual[t].subcategorias[k].galeria = [];
+                }
+                
+                dataActual[t].subcategorias[k].galeria.push({
+                    url: url,
+                    descripcion: desc
+                });
+                
+                try {
+                    localStorage.setItem('culturaDeporte', JSON.stringify(dataActual));
+                } catch (storageErr) {
+                    alert('Error: el almacenamiento está lleno. Elimina algunas imágenes o usa URLs en lugar de archivos locales.');
+                    return;
+                }
+                
+                if (document.getElementById('modalAgrImgCD')) {
+                    document.getElementById('modalAgrImgCD').remove();
+                }
+                mostrarGaleriaCD(t, k);
+                alert('Imagen agregada correctamente');
+            } catch (error) {
+                console.error('Error al guardar:', error);
+                alert('Error al guardar: ' + error.message);
+            }
+        };
+        
+        if (fileInput.files && fileInput.files[0]) {
+            const file = fileInput.files[0];
+            if (file.size > 20 * 1024 * 1024) {
+                alert('La imagen es demasiado grande (máx 20MB). Usa una imagen más pequeña o una URL.');
+                return;
+            }
+            comprimirImagen(file, 1, (imagenComprimida) => {
+                guardarImg(imagenComprimida);
+            });
+        } else if (urlInput) {
+            guardarImg(urlInput);
+        } else {
+            alert('Debes seleccionar una imagen o ingresar una URL');
+        }
+    });
+};
+
+window.eliminarImagenCD = function(tipo, key, idx) {
+    const data = JSON.parse(localStorage.getItem('culturaDeporte')) || {};
+    if (!data[tipo] || !data[tipo].subcategorias || !data[tipo].subcategorias[key] || 
+        !data[tipo].subcategorias[key].galeria || !data[tipo].subcategorias[key].galeria[idx]) {
+        alert('Los datos de la imagen no están disponibles');
+        return;
+    }
+    
+    if (confirm('¿Estás seguro de que deseas eliminar esta imagen?')) {
+        data[tipo].subcategorias[key].galeria.splice(idx, 1);
+        localStorage.setItem('culturaDeporte', JSON.stringify(data));
+        mostrarGaleriaCD(tipo, key);
+    }
+};
+
+window.mostrarSubcategorias = function(tipo) {
+    const data = JSON.parse(localStorage.getItem('culturaDeporte')) || {};
+    const cat = data[tipo];
+
+    if (!cat || !cat.subcategorias) {
+        alert('Los datos de ' + tipo + ' no están disponibles');
+        return;
+    }
+
+    let subCards = '';
+    for (const key in cat.subcategorias) {
+        const sub = cat.subcategorias[key];
+        const esc = tipo.replace(/'/g, "\'");
+        const escKey = key.replace(/'/g, "\'");
+        const info = (sub.informacion || '').substring(0, 110);
+        subCards += `
+            <div class="subcat-card" onclick="mostrarGaleriaCD('${esc}','${escKey}')">
+                <div class="subcat-img" style="background-image:url('${sub.imagen || ''}')"></div>
+                <div class="subcat-body">
+                    <h4>${sub.titulo}</h4>
+                    <p>${info}${(sub.informacion || '').length > 110 ? '…' : ''}</p>
+                </div>
+            </div>`;
+    }
+
+    const html = `
+        <div class="galeria-header">
+            <button class="btn-back" onclick="volverCDPrincipal()">
+                <i class="fas fa-arrow-left"></i> Volver
+            </button>
+            <div>
+                <h3 style="margin:0;">${cat.titulo}</h3>
+                <p style="margin:0.3rem 0 0;color:var(--gray-dark);font-size:0.95rem;">${cat.descripcion || ''}</p>
+            </div>
+        </div>
+        <div class="subcat-grid">${subCards}</div>`;
+
+    document.getElementById('categoria-detalle-container').innerHTML = html;
     document.getElementById('cultura-deporte-container').style.display = 'none';
     document.getElementById('categoria-detalle-container').style.display = 'block';
     document.getElementById('subcategoria-detalle-container').style.display = 'none';
 };
 
-window.verSubcategoria = function(tipo, key) {
-    const data = JSON.parse(localStorage.getItem('culturaDeporte')) || {};
-    const sub = data[tipo].categorias[key];
-    
-    indiceCulturaCarrusel[key] = 0;
+window.mostrarGaleriaCD = function(tipo, key) {
+    try {
+        const data = JSON.parse(localStorage.getItem('culturaDeporte')) || {};
+        
+        if (!data[tipo] || !data[tipo].subcategorias || !data[tipo].subcategorias[key]) {
+            alert('Los datos de la galería no están disponibles');
+            return;
+        }
+        
+        const sub = data[tipo].subcategorias[key];
+        
+        let html = '<div style="margin-bottom: 2rem;">';
+        html += '<button class="btn-back" onclick="mostrarSubcategorias(\'' + tipo + '\')" style="padding: 0.5rem 1rem; background: #666; color: white; border: none; border-radius: 4px; cursor: pointer;"><i class="fas fa-arrow-left"></i> Volver</button>';
+        html += '<h2 style="margin-top: 1rem;">' + sub.titulo + '</h2>';
+        html += '</div>';
+        
+        // Guardar galería para navegación en modal
+        window._cdGaleriaActual = sub.galeria || [];
 
-    let imagenesHtml = '';
-    sub.imagenes.forEach((img, index) => {
-        imagenesHtml += `
-            <div class="carrusel-cultura-slide ${index === 0 ? 'activo' : ''}" style="background-image: url('${img}')"></div>
-        `;
-    });
+        if (usuarioActual && (usuarioActual.rol==='admin'||usuarioActual.rol==='profesor')) {
+            html += '<div style="margin-bottom:1rem;">';
+            html += '<button type="button" class="btn-primary" onclick="abrirAgregarImagenCD(\'' + tipo + '\',\'' + key + '\')"><i class="fas fa-plus"></i> Agregar Imagen</button>';
+            html += '</div>';
+        }
 
-    document.getElementById('subcategoria-detalle-container').innerHTML = `
-        <div class="subcategoria-header">
-            <button class="btn-back" onclick="verCategoria('${tipo}')"><i class="fas fa-arrow-left"></i> Volver a ${data[tipo].titulo}</button>
-            <h2>${sub.nombre}</h2>
-        </div>
-        <div class="subcategoria-contenido">
-            <div class="subcategoria-info">
-                <p>${sub.informacion}</p>
-                ${usuarioActual && usuarioActual.rol === 'admin' ? `
-                    <button class="btn-warning btn-small" onclick="editarSubcategoria('${tipo}', '${key}')" style="margin-top:1rem;">
-                        <i class="fas fa-edit"></i> Editar
-                    </button>
-                ` : ''}
-            </div>
-            <div class="carrusel-cultura-container" id="carrusel-${key}">
-                ${imagenesHtml}
-                <button class="carrusel-btn prev" onclick="cambiarSlideCultura('${key}', -1)">❮</button>
-                <button class="carrusel-btn next" onclick="cambiarSlideCultura('${key}', 1)">❯</button>
-                <div class="carrusel-indicadores" id="indicadores-${key}">
-                    ${sub.imagenes.map((_, i) => `<span class="indicador ${i === 0 ? 'activo' : ''}" onclick="irASlideCultura('${key}', ${i})"></span>`).join('')}
-                </div>
-            </div>
-        </div>
-    `;
-
-    document.getElementById('categoria-detalle-container').style.display = 'none';
-    document.getElementById('subcategoria-detalle-container').style.display = 'block';
-    iniciarCarruselCultura(key);
+        html += '<div class="galeria-grid">';
+        
+        if (sub.galeria && sub.galeria.length > 0) {
+            sub.galeria.forEach(function(img, idx) {
+                const escUrl = img.url.replace(/\\/g,'\\\\').replace(/'/g,"\\'");
+                const escDesc = (img.descripcion||'').replace(/'/g,"\\'");
+                html += '<div class="galeria-item" style="position:relative;">';
+                html += '<img src="' + img.url + '" alt="' + (img.descripcion||'Imagen') + '" style="width:100%;height:100%;object-fit:cover;display:block;cursor:pointer;" onclick="abrirModalImagen(\'' + escUrl + '\',\'' + escDesc + '\',window._cdGaleriaActual,' + idx + ')">';
+                html += '<div class="galeria-descripcion">' + (img.descripcion||'') + '</div>';
+                if (usuarioActual && (usuarioActual.rol==='admin'||usuarioActual.rol==='profesor')) {
+                    html += '<div class="galeria-acciones">';
+                    html += '<button type="button" class="btn-accion editar" onclick="editarImagenCD(\'' + tipo + '\',\'' + key + '\',' + idx + ')" title="Editar"><i class="fas fa-edit"></i></button>';
+                    html += '<button type="button" class="btn-accion eliminar" onclick="eliminarImagenCD(\'' + tipo + '\',\'' + key + '\',' + idx + ')" title="Eliminar"><i class="fas fa-trash"></i></button>';
+                    html += '</div>';
+                }
+                html += '</div>';
+            });
+        } else {
+            html += '<p style="grid-column:1/-1;text-align:center;color:#999;">Sin imágenes disponibles</p>';
+        }
+        
+        html += '</div>';
+        
+        const galeryContainer = document.getElementById('subcategoria-detalle-container');
+        if (galeryContainer) {
+            galeryContainer.innerHTML = html;
+            galeryContainer.style.display = 'block';
+        }
+        document.getElementById('categoria-detalle-container').style.display = 'none';
+    } catch (e) {
+        console.error('Error en mostrarGaleriaCD:', e);
+    }
 };
 
-window.cambiarSlideCultura = function(key, direccion) {
-    const slides = document.querySelectorAll(`#carrusel-${key} .carrusel-cultura-slide`);
-    const indicadores = document.querySelectorAll(`#indicadores-${key} .indicador`);
-    if (!slides.length) return;
-    
-    slides[indiceCulturaCarrusel[key]]?.classList.remove('activo');
-    indicadores[indiceCulturaCarrusel[key]]?.classList.remove('activo');
-    
-    indiceCulturaCarrusel[key] = (indiceCulturaCarrusel[key] + direccion + slides.length) % slides.length;
-    
-    slides[indiceCulturaCarrusel[key]]?.classList.add('activo');
-    indicadores[indiceCulturaCarrusel[key]]?.classList.add('activo');
-};
-
-window.irASlideCultura = function(key, index) {
-    const slides = document.querySelectorAll(`#carrusel-${key} .carrusel-cultura-slide`);
-    const indicadores = document.querySelectorAll(`#indicadores-${key} .indicador`);
-    if (!slides.length) return;
-    
-    slides[indiceCulturaCarrusel[key]]?.classList.remove('activo');
-    indicadores[indiceCulturaCarrusel[key]]?.classList.remove('activo');
-    
-    indiceCulturaCarrusel[key] = index;
-    slides[index]?.classList.add('activo');
-    indicadores[index]?.classList.add('activo');
-};
-
-function iniciarCarruselCultura(key) {
-    if (intervalosCulturaCarrusel[key]) clearInterval(intervalosCulturaCarrusel[key]);
-    intervalosCulturaCarrusel[key] = setInterval(() => {
-        cambiarSlideCultura(key, 1);
-    }, 5000);
-}
-
-window.volverACultura = function() {
-    document.getElementById('cultura-deporte-container').style.display = 'block';
+window.volverCDPrincipal = function() {
+    document.getElementById('cultura-deporte-container').style.display = '';
     document.getElementById('categoria-detalle-container').style.display = 'none';
     document.getElementById('subcategoria-detalle-container').style.display = 'none';
-    
-    Object.keys(intervalosCulturaCarrusel).forEach(key => {
-        clearInterval(intervalosCulturaCarrusel[key]);
-    });
-};
-
-window.abrirEditorCultura = function() {
-    const data = JSON.parse(localStorage.getItem('culturaDeporte')) || {};
-    
-    let html = `
-        <h3>Editar Cultura y Deporte</h3>
-        <div class="editor-cultura">
-            <h4>Cultura</h4>
-            <div class="form-group">
-                <label>Título</label>
-                <input type="text" id="edit-cultura-titulo" value="${data.cultura.titulo}">
-            </div>
-            <div class="form-group">
-                <label>Descripción</label>
-                <textarea id="edit-cultura-descripcion">${data.cultura.descripcion}</textarea>
-            </div>
-            <div class="form-group">
-                <label>Imagen URL</label>
-                <input type="text" id="edit-cultura-imagen" value="${data.cultura.imagen}">
-            </div>
-            
-            <h4>Deporte</h4>
-            <div class="form-group">
-                <label>Título</label>
-                <input type="text" id="edit-deporte-titulo" value="${data.deporte.titulo}">
-            </div>
-            <div class="form-group">
-                <label>Descripción</label>
-                <textarea id="edit-deporte-descripcion">${data.deporte.descripcion}</textarea>
-            </div>
-            <div class="form-group">
-                <label>Imagen URL</label>
-                <input type="text" id="edit-deporte-imagen" value="${data.deporte.imagen}">
-            </div>
-            
-            <button class="btn-success" onclick="guardarEditorCultura()">Guardar</button>
-        </div>
-    `;
-    
-    document.getElementById('editor-cultura-contenido').innerHTML = html;
-    document.getElementById('modalEditorCultura').style.display = 'flex';
-};
-
-window.guardarEditorCultura = function() {
-    const data = JSON.parse(localStorage.getItem('culturaDeporte')) || {};
-    data.cultura.titulo = document.getElementById('edit-cultura-titulo').value;
-    data.cultura.descripcion = document.getElementById('edit-cultura-descripcion').value;
-    data.cultura.imagen = document.getElementById('edit-cultura-imagen').value;
-    data.deporte.titulo = document.getElementById('edit-deporte-titulo').value;
-    data.deporte.descripcion = document.getElementById('edit-deporte-descripcion').value;
-    data.deporte.imagen = document.getElementById('edit-deporte-imagen').value;
-    
-    localStorage.setItem('culturaDeporte', JSON.stringify(data));
-    document.getElementById('modalEditorCultura').style.display = 'none';
+    // Restaurar botón editar si estaba en modo edición
     renderizarCulturaDeporte();
-};
-
-window.editarSubcategoria = function(tipo, key) {
-    const data = JSON.parse(localStorage.getItem('culturaDeporte')) || {};
-    const sub = data[tipo].categorias[key];
-    
-    let imagenesHtml = '';
-    sub.imagenes.forEach((img, i) => {
-        imagenesHtml += `
-            <div class="form-group">
-                <label>Imagen ${i+1}</label>
-                <input type="text" id="edit-imagen-${i}" value="${img}">
-            </div>
-        `;
-    });
-    
-    let html = `
-        <h3>Editar ${sub.nombre}</h3>
-        <div class="form-group">
-            <label>Nombre</label>
-            <input type="text" id="edit-sub-nombre" value="${sub.nombre}">
-        </div>
-        <div class="form-group">
-            <label>Información</label>
-            <textarea id="edit-sub-informacion">${sub.informacion}</textarea>
-        </div>
-        <div class="form-group">
-            <label>Imagen Principal</label>
-            <input type="text" id="edit-sub-imagen" value="${sub.imagen}">
-        </div>
-        <h4>Imágenes</h4>
-        ${imagenesHtml}
-        <button class="btn-success" onclick="guardarSubcategoria('${tipo}', '${key}')">Guardar</button>
-    `;
-    
-    document.getElementById('editor-cultura-contenido').innerHTML = html;
-    document.getElementById('modalEditorCultura').style.display = 'flex';
-};
-
-window.guardarSubcategoria = function(tipo, key) {
-    const data = JSON.parse(localStorage.getItem('culturaDeporte')) || {};
-    const sub = data[tipo].categorias[key];
-    
-    sub.nombre = document.getElementById('edit-sub-nombre').value;
-    sub.informacion = document.getElementById('edit-sub-informacion').value;
-    sub.imagen = document.getElementById('edit-sub-imagen').value;
-    sub.imagenes = [];
-    
-    let i = 0;
-    while(document.getElementById(`edit-imagen-${i}`)) {
-        sub.imagenes.push(document.getElementById(`edit-imagen-${i}`).value);
-        i++;
-    }
-    
-    localStorage.setItem('culturaDeporte', JSON.stringify(data));
-    document.getElementById('modalEditorCultura').style.display = 'none';
-    verSubcategoria(tipo, key);
 };
 
 // ===== HORARIOS =====
 function renderizarHorarios() {
+    const selectorContainer = document.querySelector('#horarios .selector-grado');
     const select = document.getElementById('selector-grado-horario');
-    let grado = select.value;
-    if (!grado && usuarioActual?.rol === 'estudiante') {
-        grado = usuarioActual.grado;
-        select.value = grado;
-    }
-    
-    if (!grado) {
-        document.getElementById('horarios-tabla-container').innerHTML = '<p class="text-center">Seleccione un grado para ver el horario.</p>';
-        return;
-    }
-    
-    gestorHorarios.renderizarHorario(grado, 'horarios-tabla-container');
-}
 
-// ===== CALIFICACIONES =====
-function cargarSelectorEstudiantes() {
-    const select = document.getElementById('selector-estudiante-calif');
-    const estudiantes = JSON.parse(localStorage.getItem('estudiantes')) || [];
-    select.innerHTML = '<option value="">-- Seleccionar --</option>';
-    estudiantes.forEach(e => {
-        const option = document.createElement('option');
-        option.value = e.id;
-        option.textContent = `${e.nombre} ${e.apellido} (${e.grado})`;
-        select.appendChild(option);
-    });
-}
-
-function renderizarCalificacionesYAsistencia() {
-    if (!usuarioActual) return;
-
-    const rol = usuarioActual.rol;
-    let idEstudiante = null;
-
-    if (rol === 'estudiante') {
-        idEstudiante = usuarioActual.id_estudiante || usuarioActual.id;
-    } else if (rol === 'admin' || rol === 'profesor') {
-        const select = document.getElementById('selector-estudiante-calif');
-        idEstudiante = select.value ? parseInt(select.value) : null;
-    }
-
-    const calificaciones = JSON.parse(localStorage.getItem('calificaciones')) || [];
-    const asistencia = JSON.parse(localStorage.getItem('asistencia')) || [];
-
-    let califFiltradas = calificaciones;
-    let asisFiltradas = asistencia;
-    if (idEstudiante) {
-        califFiltradas = calificaciones.filter(c => c.id_estudiante === idEstudiante);
-        asisFiltradas = asistencia.filter(a => a.id_estudiante === idEstudiante);
-    }
-
-    const tbodyCalif = document.getElementById('calificaciones-body');
-    tbodyCalif.innerHTML = '';
-    if (califFiltradas.length === 0) {
-        tbodyCalif.innerHTML = '<tr><td colspan="7" class="text-center">No hay calificaciones</td></tr>';
+    if (usuarioActual && usuarioActual.rol === 'estudiante') {
+        if (selectorContainer) selectorContainer.style.display = 'none';
+        const grado = usuarioActual.grado;
+        if (!grado) {
+            document.getElementById('horarios-tabla-container').innerHTML = '<p class="text-center">No tienes un grado asignado. Contacta al administrador.</p>';
+            return;
+        }
+        const gradosNombres = {
+            primero: 'Primero', segundo: 'Segundo', tercero: 'Tercero',
+            cuarto: 'Cuarto', quinto: 'Quinto', sexto: 'Sexto',
+            septimo: 'Séptimo', octavo: 'Octavo', noveno: 'Noveno',
+            decimo: 'Décimo', once: 'Once'
+        };
+        const container = document.getElementById('horarios-tabla-container');
+        container.innerHTML = `<p style="margin-bottom:1rem; font-weight:600; color:var(--primary);"><i class="fas fa-graduation-cap"></i> Tu horario — Grado: ${gradosNombres[grado] || grado}</p>`;
+        gestorHorarios.renderizarHorario(grado, 'horarios-tabla-container');
     } else {
-        califFiltradas.forEach(c => {
-            const promedio = ((c.nota1 + c.nota2 + c.nota3) / 3).toFixed(2);
-            const tr = document.createElement('tr');
-            tr.innerHTML = `
-                <td>${c.materia}</td>
-                <td>${c.nota1}</td>
-                <td>${c.nota2}</td>
-                <td>${c.nota3}</td>
-                <td><strong>${promedio}</strong></td>
-                <td>${c.comportamiento || 'N/A'}</td>
-                <td>
-                    ${(rol === 'admin' || rol === 'profesor') ? 
-                        `<button class="btn-warning btn-small" onclick="editarCalificacion(${c.id})"><i class="fas fa-edit"></i></button>
-                         <button class="btn-danger btn-small" onclick="eliminarCalificacion(${c.id})"><i class="fas fa-trash"></i></button>` : ''}
-                </td>
-            `;
-            tbodyCalif.appendChild(tr);
-        });
-    }
-
-    const tbodyAsis = document.getElementById('asistencia-body');
-    tbodyAsis.innerHTML = '';
-    if (asisFiltradas.length === 0) {
-        tbodyAsis.innerHTML = '<tr><td colspan="5" class="text-center">No hay registros</td></tr>';
-    } else {
-        asisFiltradas.forEach(a => {
-            const porcentaje = a.clases_totales > 0 ? ((a.asistencias / a.clases_totales) * 100).toFixed(1) + '%' : '0%';
-            const tr = document.createElement('tr');
-            tr.innerHTML = `
-                <td>${a.materia}</td>
-                <td>${a.clases_totales}</td>
-                <td>${a.asistencias}</td>
-                <td><strong>${porcentaje}</strong></td>
-                <td>
-                    ${(rol === 'admin' || rol === 'profesor') ? 
-                        `<button class="btn-warning btn-small" onclick="editarAsistencia(${a.id})"><i class="fas fa-edit"></i></button>
-                         <button class="btn-danger btn-small" onclick="eliminarAsistencia(${a.id})"><i class="fas fa-trash"></i></button>` : ''}
-                </td>
-            `;
-            tbodyAsis.appendChild(tr);
-        });
+        if (selectorContainer) selectorContainer.style.display = 'block';
+        const grado = select.value;
+        if (!grado) {
+            document.getElementById('horarios-tabla-container').innerHTML = '<p class="text-center">Seleccione un grado para ver el horario.</p>';
+            return;
+        }
+        gestorHorarios.renderizarHorario(grado, 'horarios-tabla-container');
     }
 }
 
 // ===== FORO =====
-function renderizarForo() {
-    const mensajes = JSON.parse(localStorage.getItem('foroMensajes')) || [];
+let foroFiltro = '';
+
+function renderizarForo(mensajesFiltrados) {
+    const mensajes = mensajesFiltrados || (JSON.parse(localStorage.getItem('foroMensajes')) || []);
     const container = document.getElementById('foro-mensajes');
     container.innerHTML = '';
-    
+
     if (mensajes.length === 0) {
-        container.innerHTML = '<p class="text-center">No hay mensajes en el foro.</p>';
+        container.innerHTML = foroFiltro
+            ? `<div class="foro-sin-resultados"><i class="fas fa-search"></i><p>No se encontraron mensajes para "<strong>${foroFiltro}</strong>"</p></div>`
+            : '<p class="text-center">No hay mensajes en el foro.</p>';
         return;
     }
-    
-    mensajes.sort((a,b) => new Date(b.fecha) - new Date(a.fecha)).forEach(m => {
+
+    [...mensajes].sort((a,b) => new Date(b.fecha) - new Date(a.fecha)).forEach(m => {
         const div = document.createElement('div');
         div.className = 'mensaje';
+
+        const resaltar = (texto) => {
+            if (!foroFiltro) return texto;
+            const re = new RegExp(`(${foroFiltro.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')})`, 'gi');
+            return texto.replace(re, '<mark class="highlight-match">$1</mark>');
+        };
+
+        const esMio = usuarioActual && m.id_usuario === usuarioActual.id;
+        const puedeEliminar = usuarioActual && (esMio || usuarioActual.rol === 'admin');
+
         div.innerHTML = `
             <div class="mensaje-header">
-                <span><i class="fas fa-user-circle"></i> ${m.autor}</span>
-                <span><i class="far fa-calendar-alt"></i> ${new Date(m.fecha).toLocaleDateString()}</span>
+                <span><i class="fas fa-user-circle"></i> ${m.autor}${esMio ? ' <em style="font-size:0.75rem;opacity:0.7;">(tú)</em>' : ''}</span>
+                <div style="display:flex;align-items:center;gap:0.75rem;">
+                    <span><i class="far fa-calendar-alt"></i> ${new Date(m.fecha).toLocaleDateString()}</span>
+                    ${puedeEliminar ? `<button class="btn-eliminar-mensaje" onclick="eliminarMensajeForo(${m.id})" title="Eliminar mensaje"><i class="fas fa-trash"></i> Eliminar</button>` : ''}
+                </div>
             </div>
             <div class="mensaje-contenido">
-                <strong>${m.titulo}</strong>
-                <p>${m.contenido}</p>
+                <strong>${resaltar(m.titulo)}</strong>
+                <p>${resaltar(m.contenido)}</p>
             </div>
             <div class="mensaje-comentarios" id="comentarios-${m.id}">
                 ${m.comentarios ? m.comentarios.map(c => `
                     <div class="comentario">
-                        <strong>${c.autor}:</strong> ${c.contenido} <em>(${new Date(c.fecha).toLocaleDateString()})</em>
+                        <strong>${c.autor}:</strong> ${resaltar(c.contenido)} <em>(${new Date(c.fecha).toLocaleDateString()})</em>
                     </div>
                 `).join('') : ''}
             </div>
-            ${usuarioActual && usuarioActual.rol === 'estudiante' ? `
-                <button class="btn-primary btn-small" onclick="agregarComentario(${m.id})">
+            ${usuarioActual ? `
+                <button class="btn-primary btn-small" onclick="agregarComentario(${m.id})" style="margin-top:0.75rem;">
                     <i class="fas fa-comment"></i> Comentar
                 </button>
             ` : ''}
@@ -1436,6 +2553,51 @@ function renderizarForo() {
         container.appendChild(div);
     });
 }
+
+window.eliminarMensajeForo = function(idMensaje) {
+    if (!usuarioActual) return;
+    if (!confirm('¿Eliminar este mensaje? Esta acción no se puede deshacer.')) return;
+
+    let mensajes = JSON.parse(localStorage.getItem('foroMensajes')) || [];
+    const mensaje = mensajes.find(m => m.id === idMensaje);
+    if (!mensaje) return;
+
+    if (mensaje.id_usuario !== usuarioActual.id && usuarioActual.rol !== 'admin') {
+        mostrarToast('No tienes permisos para eliminar este mensaje.', 'error');
+        return;
+    }
+
+    mensajes = mensajes.filter(m => m.id !== idMensaje);
+    localStorage.setItem('foroMensajes', JSON.stringify(mensajes));
+    renderizarForo();
+    mostrarToast('Mensaje eliminado correctamente.', 'success');
+};
+
+window.filtrarForo = function(texto) {
+    foroFiltro = texto.trim();
+    const clearBtn = document.getElementById('foroBuscadorClear');
+    if (clearBtn) clearBtn.style.display = foroFiltro ? 'flex' : 'none';
+
+    if (!foroFiltro) {
+        renderizarForo();
+        return;
+    }
+    const todos = JSON.parse(localStorage.getItem('foroMensajes')) || [];
+    const lower = foroFiltro.toLowerCase();
+    const filtrados = todos.filter(m =>
+        m.titulo.toLowerCase().includes(lower) ||
+        m.contenido.toLowerCase().includes(lower) ||
+        m.autor.toLowerCase().includes(lower) ||
+        (m.comentarios && m.comentarios.some(c => c.contenido.toLowerCase().includes(lower)))
+    );
+    renderizarForo(filtrados);
+};
+
+window.limpiarBuscadorForo = function() {
+    const input = document.getElementById('foroBuscador');
+    if (input) input.value = '';
+    filtrarForo('');
+};
 
 function agregarComentario(idMensaje) {
     const comentario = prompt('Escribe tu comentario:');
@@ -1615,10 +2777,11 @@ function abrirEditorCarrusel() {
         div.className = 'carrusel-editor-item';
         div.innerHTML = `
             <div style="display:flex; gap:15px; align-items:center; flex-wrap:wrap; margin-bottom:15px; padding:15px; background:#f8f9fa; border-radius:10px;">
-                <img src="${item.imagen}" style="width:150px; height:100px; object-fit:cover; border-radius:8px;">
+                <img src="${item.imagen}" style="width:150px; height:100px; object-fit:cover; border-radius:8px;" id="img-${index}">
                 <div style="flex:1;">
-                    <input type="text" placeholder="Título" value="${item.titulo}" data-index="${index}" class="carrusel-titulo form-control" style="margin-bottom:5px;">
-                    <input type="text" placeholder="Descripción" value="${item.descripcion}" data-index="${index}" class="carrusel-descripcion form-control">
+                    <input type="text" placeholder="Título" value="${item.titulo.replace(/"/g, '&quot;')}" data-index="${index}" class="carrusel-titulo form-control" style="margin-bottom:5px;">
+                    <input type="text" placeholder="Descripción" value="${item.descripcion.replace(/"/g, '&quot;')}" data-index="${index}" class="carrusel-descripcion form-control" style="margin-bottom:5px;">
+                    <input type="file" accept="image/*" onchange="cambiarImagenCarrusel(${index}, this)" style="font-size:0.8rem;">
                 </div>
                 <button class="btn-danger" onclick="eliminarSlide(${index})">Eliminar</button>
             </div>
@@ -1633,6 +2796,20 @@ window.eliminarSlide = function(index) {
     carrusel.splice(index, 1);
     localStorage.setItem('carrusel', JSON.stringify(carrusel));
     abrirEditorCarrusel();
+};
+
+window.cambiarImagenCarrusel = function(index, input) {
+    if (input.files && input.files[0]) {
+        const file = input.files[0];
+        comprimirImagen(file, 1, (imagenComprimida) => {
+            if (imagenComprimida) {
+                let carrusel = JSON.parse(localStorage.getItem('carrusel')) || [];
+                carrusel[index].imagen = imagenComprimida;
+                localStorage.setItem('carrusel', JSON.stringify(carrusel));
+                document.getElementById(`img-${index}`).src = imagenComprimida;
+            }
+        });
+    }
 };
 
 // ===== FUNCIONES DE EDICIÓN =====
@@ -1675,113 +2852,61 @@ window.editarTarjeta = function(tarjeta) {
     document.getElementById('modalTarjeta').style.display = 'flex';
 };
 
-window.editarVideo = function() {
-    if (!usuarioActual || usuarioActual.rol !== 'admin') return alert('No autorizado');
-    const nuevoVideo = prompt('URL del video (embed):', 'https://www.youtube.com/embed/dQw4w9WgXcQ');
-    if (nuevoVideo) {
-        const sn = JSON.parse(localStorage.getItem('sobreNosotros')) || {};
-        sn.video = nuevoVideo;
-        localStorage.setItem('sobreNosotros', JSON.stringify(sn));
-        cargarSobreNosotros();
-    }
-};
-
-// ===== FUNCIONES PARA CALIFICACIONES =====
-function abrirModalCalificacion(id = null) {
-    if (!usuarioActual || (usuarioActual.rol !== 'admin' && usuarioActual.rol !== 'profesor')) return;
+window.mostrarPreviewImagen = function(inputFileId, previewContainerId) {
+    const fileInput = document.getElementById(inputFileId);
+    const previewContainer = document.getElementById(previewContainerId);
     
-    const select = document.getElementById('selector-estudiante-calif');
-    const idEstudiante = select.value ? parseInt(select.value) : null;
-    if (!idEstudiante) {
-        alert('Seleccione un estudiante');
-        return;
-    }
-
-    if (id) {
-        const calificaciones = JSON.parse(localStorage.getItem('calificaciones')) || [];
-        const calif = calificaciones.find(c => c.id === id);
-        if (calif) {
-            document.getElementById('calificacion-id').value = calif.id;
-            document.getElementById('calificacion-id-estudiante').value = calif.id_estudiante;
-            document.getElementById('calificacion-materia').value = calif.materia;
-            document.getElementById('calificacion-nota1').value = calif.nota1;
-            document.getElementById('calificacion-nota2').value = calif.nota2;
-            document.getElementById('calificacion-nota3').value = calif.nota3;
-            document.getElementById('calificacion-comportamiento').value = calif.comportamiento || 'Bueno';
-            document.getElementById('tituloModalCalificacion').innerText = 'Editar Calificación';
-        }
-    } else {
-        document.getElementById('calificacion-id').value = '';
-        document.getElementById('calificacion-id-estudiante').value = idEstudiante;
-        document.getElementById('calificacion-materia').value = '';
-        document.getElementById('calificacion-nota1').value = '';
-        document.getElementById('calificacion-nota2').value = '';
-        document.getElementById('calificacion-nota3').value = '';
-        document.getElementById('calificacion-comportamiento').value = 'Bueno';
-        document.getElementById('tituloModalCalificacion').innerText = 'Agregar Calificación';
-    }
-    document.getElementById('modalCalificacion').style.display = 'flex';
-}
-
-function abrirModalAsistencia(id = null) {
-    if (!usuarioActual || (usuarioActual.rol !== 'admin' && usuarioActual.rol !== 'profesor')) return;
+    if (!fileInput) return;
     
-    const select = document.getElementById('selector-estudiante-calif');
-    const idEstudiante = select.value ? parseInt(select.value) : null;
-    if (!idEstudiante) {
-        alert('Seleccione un estudiante');
-        return;
-    }
-
-    if (id) {
-        const asistencias = JSON.parse(localStorage.getItem('asistencia')) || [];
-        const asis = asistencias.find(a => a.id === id);
-        if (asis) {
-            document.getElementById('asistencia-id').value = asis.id;
-            document.getElementById('asistencia-id-estudiante').value = asis.id_estudiante;
-            document.getElementById('asistencia-materia').value = asis.materia;
-            document.getElementById('asistencia-clases-totales').value = asis.clases_totales;
-            document.getElementById('asistencia-asistencias').value = asis.asistencias;
+    fileInput.addEventListener('change', function(e) {
+        if (this.files && this.files[0]) {
+            const file = this.files[0];
+            
+            if (!file.type.startsWith('image/')) {
+                alert('Por favor selecciona un archivo de imagen válido');
+                this.value = '';
+                return;
+            }
+            
+            const reader = new FileReader();
+            reader.onload = function(event) {
+                if (previewContainer) {
+                    previewContainer.innerHTML = '';
+                    
+                    const img = document.createElement('img');
+                    img.src = event.target.result;
+                    img.style.cssText = 'max-width: 100%; max-height: 200px; border-radius: 8px; margin-top: 10px; border: 2px solid #ddd;';
+                    img.alt = 'Preview de la imagen';
+                    
+                    previewContainer.appendChild(img);
+                    
+                    const info = document.createElement('small');
+                    info.textContent = '✓ Imagen cargada correctamente';
+                    info.style.cssText = 'display: block; color: #28a745; margin-top: 8px; font-weight: bold;';
+                    previewContainer.appendChild(info);
+                }
+            };
+            reader.readAsDataURL(file);
         }
-    } else {
-        document.getElementById('asistencia-id').value = '';
-        document.getElementById('asistencia-id-estudiante').value = idEstudiante;
-        document.getElementById('asistencia-materia').value = '';
-        document.getElementById('asistencia-clases-totales').value = '';
-        document.getElementById('asistencia-asistencias').value = '';
-    }
-    document.getElementById('modalAsistencia').style.display = 'flex';
-}
-
-window.editarCalificacion = function(id) { abrirModalCalificacion(id); };
-window.eliminarCalificacion = function(id) {
-    if (!confirm('¿Eliminar esta calificación?')) return;
-    let calificaciones = JSON.parse(localStorage.getItem('calificaciones')) || [];
-    calificaciones = calificaciones.filter(c => c.id !== id);
-    localStorage.setItem('calificaciones', JSON.stringify(calificaciones));
-    renderizarCalificacionesYAsistencia();
-};
-window.editarAsistencia = function(id) { abrirModalAsistencia(id); };
-window.eliminarAsistencia = function(id) {
-    if (!confirm('¿Eliminar este registro?')) return;
-    let asistencia = JSON.parse(localStorage.getItem('asistencia')) || [];
-    asistencia = asistencia.filter(a => a.id !== id);
-    localStorage.setItem('asistencia', JSON.stringify(asistencia));
-    renderizarCalificacionesYAsistencia();
+    });
 };
 
 // ===== EVENTOS =====
 generarMenu();
 
-// Toggle menú móvil
 if (menuToggle) {
     menuToggle.addEventListener('click', () => {
         document.getElementById('mainNav').classList.toggle('mostrar');
     });
 }
 
-// Login
-btnLogin.addEventListener('click', () => document.getElementById('modalLogin').style.display = 'flex');
+btnLogin.addEventListener('click', () => {
+    document.getElementById('modalLogin').style.display = 'flex';
+    tabLoginBtn.classList.add('activo');
+    tabRegisterBtn.classList.remove('activo');
+    panelLogin.classList.add('activo');
+    panelRegister.classList.remove('activo');
+});
 cerrarModal.addEventListener('click', () => document.getElementById('modalLogin').style.display = 'none');
 
 tabLoginBtn.addEventListener('click', () => {
@@ -1798,18 +2923,16 @@ tabRegisterBtn.addEventListener('click', () => {
     panelLogin.classList.remove('activo');
 });
 
-// Cerrar modales
-document.getElementById('cerrarModalEditor').addEventListener('click', () => document.getElementById('modalEditor').style.display = 'none');
-document.getElementById('cerrarModalCarrusel').addEventListener('click', () => document.getElementById('modalCarrusel').style.display = 'none');
-document.getElementById('cerrarModalTarjeta').addEventListener('click', () => document.getElementById('modalTarjeta').style.display = 'none');
-document.getElementById('cerrarModalHorario').addEventListener('click', () => document.getElementById('modalHorario').style.display = 'none');
-document.getElementById('cerrarModalCalificacion').addEventListener('click', () => document.getElementById('modalCalificacion').style.display = 'none');
-document.getElementById('cerrarModalAsistencia').addEventListener('click', () => document.getElementById('modalAsistencia').style.display = 'none');
-document.getElementById('cerrarModalEditorCultura').addEventListener('click', () => document.getElementById('modalEditorCultura').style.display = 'none');
-document.getElementById('cerrarModalDetalle').addEventListener('click', () => document.getElementById('modalDetalleActividad').style.display = 'none');
+document.getElementById('cerrarModalEditor')?.addEventListener('click', () => document.getElementById('modalEditor').style.display = 'none');
+document.getElementById('cerrarModalCarrusel')?.addEventListener('click', () => document.getElementById('modalCarrusel').style.display = 'none');
+document.getElementById('cerrarModalTarjeta')?.addEventListener('click', () => document.getElementById('modalTarjeta').style.display = 'none');
+document.getElementById('cerrarModalHorario')?.addEventListener('click', () => document.getElementById('modalHorario').style.display = 'none');
+document.getElementById('cerrarModalEditorCultura')?.addEventListener('click', () => document.getElementById('modalEditorCultura').style.display = 'none');
+document.getElementById('cerrarModalDetalle')?.addEventListener('click', () => document.getElementById('modalDetalleActividad').style.display = 'none');
 document.getElementById('btnCancelarActividad')?.addEventListener('click', () => document.getElementById('modalActividad').style.display = 'none');
+document.getElementById('cerrarModalAgregarImagen')?.addEventListener('click', () => document.getElementById('modalAgregarImagen').style.display = 'none');
+document.getElementById('cerrarModalEditarImagen')?.addEventListener('click', () => document.getElementById('modalEditarImagen').style.display = 'none');
 
-// Cerrar modales al hacer click fuera
 window.addEventListener('click', (e) => {
     if (e.target === document.getElementById('modalLogin')) document.getElementById('modalLogin').style.display = 'none';
     if (e.target === document.getElementById('modalActividad')) document.getElementById('modalActividad').style.display = 'none';
@@ -1817,11 +2940,11 @@ window.addEventListener('click', (e) => {
     if (e.target === document.getElementById('modalCarrusel')) document.getElementById('modalCarrusel').style.display = 'none';
     if (e.target === document.getElementById('modalTarjeta')) document.getElementById('modalTarjeta').style.display = 'none';
     if (e.target === document.getElementById('modalHorario')) document.getElementById('modalHorario').style.display = 'none';
-    if (e.target === document.getElementById('modalCalificacion')) document.getElementById('modalCalificacion').style.display = 'none';
-    if (e.target === document.getElementById('modalAsistencia')) document.getElementById('modalAsistencia').style.display = 'none';
     if (e.target === document.getElementById('modalEditorCultura')) document.getElementById('modalEditorCultura').style.display = 'none';
     if (e.target === document.getElementById('modalDetalleActividad')) document.getElementById('modalDetalleActividad').style.display = 'none';
     if (e.target === document.getElementById('modalImagen')) cerrarModalImagen();
+    if (e.target === document.getElementById('modalAgregarImagen')) document.getElementById('modalAgregarImagen').style.display = 'none';
+    if (e.target === document.getElementById('modalEditarImagen')) document.getElementById('modalEditarImagen').style.display = 'none';
 });
 
 formLogin.addEventListener('submit', (e) => {
@@ -1833,15 +2956,18 @@ formLogin.addEventListener('submit', (e) => {
     
     if (user) {
         usuarioActual = { ...user };
+        sessionStorage.setItem('usuarioActual', JSON.stringify(usuarioActual));
         userNameSpan.textContent = user.nombre;
         btnLogin.style.display = 'none';
         btnLogout.style.display = 'inline-block';
         document.getElementById('modalLogin').style.display = 'none';
         generarMenu();
         actualizarUIporRol();
+        mostrarToast(`¡Bienvenido/a, ${user.nombre}!`, 'success');
         mostrarSeccion('inicio');
+        mostrarBannerNotificaciones();
     } else {
-        alert('Credenciales incorrectas');
+        mostrarToast('Credenciales incorrectas. Verifica tu email y contraseña.', 'error');
     }
 });
 
@@ -1873,8 +2999,7 @@ formRegister.addEventListener('submit', (e) => {
     };
     solicitudes.push(nuevaSolicitud);
     localStorage.setItem('solicitudesAprobacion', JSON.stringify(solicitudes));
-
-    alert('Solicitud enviada al administrador');
+    mostrarToast('Solicitud enviada. El administrador la revisará pronto.', 'info', 4000);
     document.getElementById('modalLogin').style.display = 'none';
     formRegister.reset();
     tabLoginBtn.click();
@@ -1882,12 +3007,15 @@ formRegister.addEventListener('submit', (e) => {
 
 btnLogout.addEventListener('click', () => {
     usuarioActual = null;
+    sessionStorage.removeItem('usuarioActual');
     userNameSpan.textContent = 'Invitado';
     btnLogin.style.display = 'inline-block';
     btnLogout.style.display = 'none';
     generarMenu();
     actualizarUIporRol();
     mostrarSeccion('inicio');
+    mostrarToast('Sesión cerrada correctamente.', 'info', 2500);
+    cerrarBannerNotificaciones();
 });
 
 btnAgregarActividad.addEventListener('click', () => {
@@ -1953,19 +3081,51 @@ if (formContacto) {
     });
 }
 
-// Tabs
-document.querySelectorAll('.tab-btn').forEach(btn => {
-    btn.addEventListener('click', () => {
-        document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('activo'));
-        btn.classList.add('activo');
-        document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('activo'));
-        document.getElementById(btn.dataset.tab).classList.add('activo');
-    });
-});
 
-// Selectores
+// ===== AGENDA TABS (Actividades + Horarios) =====
+function inicializarAgendaTabs() {
+    const btns = document.querySelectorAll('.agenda-tab-btn');
+    const panels = document.querySelectorAll('.agenda-tab-panel');
+    
+    btns.forEach(btn => {
+        // Remover listeners previos clonando el nodo
+        const nuevoBtn = btn.cloneNode(true);
+        btn.parentNode.replaceChild(nuevoBtn, btn);
+        nuevoBtn.addEventListener('click', () => {
+            document.querySelectorAll('.agenda-tab-btn').forEach(b => b.classList.remove('activo'));
+            panels.forEach(p => p.classList.remove('activo'));
+            nuevoBtn.classList.add('activo');
+            const target = document.getElementById(nuevoBtn.dataset.agendaTab);
+            if (target) target.classList.add('activo');
+            // Si se activa el panel de horarios, re-renderizar
+            if (nuevoBtn.dataset.agendaTab === 'tab-horarios') {
+                renderizarHorarios();
+            }
+        });
+    });
+}
+
+function inicializarTabs(contenedor) {
+    if (!contenedor) return;
+    
+    const tabs = contenedor.querySelectorAll('.tab-btn');
+    const panels = contenedor.querySelectorAll('.tab-panel');
+    
+    tabs.forEach(btn => {
+        btn.addEventListener('click', () => {
+            if (btn.classList.contains('activo')) return;
+            
+            tabs.forEach(b => b.classList.remove('activo'));
+            panels.forEach(p => p.classList.remove('activo'));
+            
+            btn.classList.add('activo');
+            const targetPanel = contenedor.querySelector(`#${btn.dataset.tab}`);
+            if (targetPanel) targetPanel.classList.add('activo');
+        });
+    });
+}
+
 document.getElementById('selector-grado-horario').addEventListener('change', renderizarHorarios);
-document.getElementById('selector-estudiante-calif').addEventListener('change', renderizarCalificacionesYAsistencia);
 document.getElementById('selector-grado-visualizar')?.addEventListener('change', function() {
     gestorHorarios.renderizarHorario(this.value, 'horario-visualizacion');
 });
@@ -1973,7 +3133,6 @@ document.getElementById('selector-grado-editar')?.addEventListener('change', fun
     gestorHorarios.renderizarHorarioEdicion(this.value, 'horario-edicion');
 });
 
-// Botones de horario
 document.getElementById('btnAgregarNuevoBloque')?.addEventListener('click', function() {
     const grado = document.getElementById('selector-grado-editar').value;
     const nuevaHora = document.getElementById('nueva-hora').value;
@@ -2010,10 +3169,6 @@ document.getElementById('btnGuardarHorario')?.addEventListener('click', function
     gestorHorarios.guardarEdicion(grado);
 });
 
-// Botones de calificaciones
-btnAgregarCalificacion.addEventListener('click', () => abrirModalCalificacion());
-btnAgregarAsistencia.addEventListener('click', () => abrirModalAsistencia());
-
 btnEditarHorario.addEventListener('click', () => {
     if (!usuarioActual || (usuarioActual.rol !== 'admin' && usuarioActual.rol !== 'profesor')) return;
     const grado = document.getElementById('selector-grado-horario').value;
@@ -2021,15 +3176,14 @@ btnEditarHorario.addEventListener('click', () => {
     
     document.getElementById('modalHorario').style.display = 'flex';
     
-    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('activo'));
-    document.querySelector('[data-tab="editar-horario"]').classList.add('activo');
-    document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('activo'));
+    document.querySelectorAll('#modalHorario .tab-btn').forEach(b => b.classList.remove('activo'));
+    document.querySelectorAll('#modalHorario .tab-panel').forEach(p => p.classList.remove('activo'));
+    document.querySelector('#modalHorario [data-tab="editar-horario"]').classList.add('activo');
     document.getElementById('editar-horario').classList.add('activo');
     
     document.getElementById('selector-grado-editar').value = grado;
     gestorHorarios.renderizarHorarioEdicion(grado, 'horario-edicion');
     
-    // Cargar bloques por nivel
     const bloquesPrimaria = document.getElementById('bloques-primaria');
     const bloquesSecundaria = document.getElementById('bloques-secundaria');
     if (bloquesPrimaria) {
@@ -2038,54 +3192,6 @@ btnEditarHorario.addEventListener('click', () => {
     if (bloquesSecundaria) {
         bloquesSecundaria.innerHTML = gestorHorarios.bloquesPorNivel.secundaria.map(b => `<div class="bloque-item">${b}</div>`).join('');
     }
-});
-
-document.getElementById('formCalificacion').addEventListener('submit', (e) => {
-    e.preventDefault();
-    const id = document.getElementById('calificacion-id').value;
-    const idEstudiante = parseInt(document.getElementById('calificacion-id-estudiante').value);
-    let calificaciones = JSON.parse(localStorage.getItem('calificaciones')) || [];
-    const nuevaCalif = {
-        id: id ? parseInt(id) : Date.now(),
-        id_estudiante: idEstudiante,
-        materia: document.getElementById('calificacion-materia').value,
-        nota1: parseFloat(document.getElementById('calificacion-nota1').value),
-        nota2: parseFloat(document.getElementById('calificacion-nota2').value),
-        nota3: parseFloat(document.getElementById('calificacion-nota3').value),
-        comportamiento: document.getElementById('calificacion-comportamiento').value
-    };
-    if (id) {
-        const index = calificaciones.findIndex(c => c.id == id);
-        if (index !== -1) calificaciones[index] = nuevaCalif;
-    } else {
-        calificaciones.push(nuevaCalif);
-    }
-    localStorage.setItem('calificaciones', JSON.stringify(calificaciones));
-    document.getElementById('modalCalificacion').style.display = 'none';
-    renderizarCalificacionesYAsistencia();
-});
-
-document.getElementById('formAsistencia').addEventListener('submit', (e) => {
-    e.preventDefault();
-    const id = document.getElementById('asistencia-id').value;
-    const idEstudiante = parseInt(document.getElementById('asistencia-id-estudiante').value);
-    let asistencias = JSON.parse(localStorage.getItem('asistencia')) || [];
-    const nuevaAsis = {
-        id: id ? parseInt(id) : Date.now(),
-        id_estudiante: idEstudiante,
-        materia: document.getElementById('asistencia-materia').value,
-        clases_totales: parseInt(document.getElementById('asistencia-clases-totales').value),
-        asistencias: parseInt(document.getElementById('asistencia-asistencias').value)
-    };
-    if (id) {
-        const index = asistencias.findIndex(a => a.id == id);
-        if (index !== -1) asistencias[index] = nuevaAsis;
-    } else {
-        asistencias.push(nuevaAsis);
-    }
-    localStorage.setItem('asistencia', JSON.stringify(asistencias));
-    document.getElementById('modalAsistencia').style.display = 'none';
-    renderizarCalificacionesYAsistencia();
 });
 
 if (formMensaje) {
@@ -2106,17 +3212,18 @@ if (formMensaje) {
         localStorage.setItem('foroMensajes', JSON.stringify(mensajes));
         formMensaje.reset();
         renderizarForo();
+        mostrarToast('Mensaje publicado en el foro.', 'success');
     });
 }
 
-document.getElementById('btnAgregarSlide').addEventListener('click', () => {
+document.getElementById('btnAgregarSlide')?.addEventListener('click', () => {
     let carrusel = JSON.parse(localStorage.getItem('carrusel')) || [];
     carrusel.push({ id: Date.now(), imagen: 'https://images.unsplash.com/photo-1523050854058-8df90110c9f1?w=1200', titulo: 'Nueva imagen', descripcion: '' });
     localStorage.setItem('carrusel', JSON.stringify(carrusel));
     abrirEditorCarrusel();
 });
 
-document.getElementById('btnGuardarCarrusel').addEventListener('click', () => {
+document.getElementById('btnGuardarCarrusel')?.addEventListener('click', () => {
     const titulos = document.querySelectorAll('.carrusel-titulo');
     const descripciones = document.querySelectorAll('.carrusel-descripcion');
     let carrusel = JSON.parse(localStorage.getItem('carrusel')) || [];
@@ -2125,9 +3232,16 @@ document.getElementById('btnGuardarCarrusel').addEventListener('click', () => {
     localStorage.setItem('carrusel', JSON.stringify(carrusel));
     document.getElementById('modalCarrusel').style.display = 'none';
     renderizarCarrusel();
+    mostrarToast('Carrusel guardado exitosamente.', 'success');
 });
 
 // ===== INICIALIZAR =====
+if (usuarioActual) {
+    userNameSpan.textContent = usuarioActual.nombre;
+    btnLogin.style.display = 'none';
+    btnLogout.style.display = 'inline-block';
+}
+
 actualizarUIporRol();
 calendarioManager.renderizarCalendario('calendario-actividades');
 calendarioManager.renderizarListaActividades();
@@ -2137,9 +3251,15 @@ cargarSobreNosotros();
 cargarContacto();
 renderizarCarrusel();
 renderizarHorarios();
-renderizarCalificacionesYAsistencia();
 renderizarForo();
 renderizarCulturaDeporte();
 renderizarMuestrasArtisticas();
 if (usuarioActual && usuarioActual.rol === 'admin') renderizarSolicitudesAprobacion();
 mostrarSeccion('inicio');
+
+mostrarPreviewImagen('imagen-file', 'preview-imagen-file');
+
+setTimeout(() => {
+    inicializarTabs(document.getElementById('solicitudes'));
+    inicializarTabs(document.getElementById('modalHorario'));
+}, 100);
