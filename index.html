@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Colegio Centro de Educación Individualizada - Portal Educativo</title>
+    <title>Colegio CEI - Portal Educativo</title>
     <!-- Font Awesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <!-- Google Fonts -->
@@ -13,7 +13,7 @@
 </head>
 <body>
     <div id="app">
-        <!-- ===== HEADER MEJORADO ===== -->
+        <!-- ===== HEADER ===== -->
         <header>
             <div class="logo">
                 <div class="logo-img">
@@ -44,6 +44,9 @@
 
         <!-- ===== MAIN CONTENT ===== -->
         <main>
+            <!-- Banner de Notificaciones (se muestra dinámicamente) -->
+            <div id="bannerNotificaciones" style="display: none;"></div>
+
             <!-- SECCIÓN INICIO -->
             <section id="inicio" class="activo">
                 <div class="section-header">
@@ -84,11 +87,12 @@
                 </div>
             </section>
 
-            <!-- SECCIÓN MUESTRAS ARTÍSTICAS (NUEVA - ESTILO CATÁLOGO) -->
+            <!-- SECCIÓN MUESTRAS ARTÍSTICAS -->
             <section id="muestras-artisticas">
                 <div class="section-header">
                     <h2><i class="fas fa-palette"></i> Muestras Artísticas</h2>
                     <div class="section-actions">
+                        <span class="edit-btn" id="btnEditarCatalogo" onclick="editarCatalogoMuestras()" title="Editar tarjetas del catálogo"><i class="fas fa-edit"></i> Editar Catálogo</span>
                         <span class="edit-btn" onclick="editarTituloSeccion('muestras-artisticas', 'Muestras Artísticas')" title="Editar título"><i class="fas fa-edit"></i></span>
                     </div>
                 </div>
@@ -110,7 +114,7 @@
                 </div>
             </section>
 
-            <!-- SECCIÓN CULTURA Y DEPORTE (MEJORADA) -->
+            <!-- SECCIÓN CULTURA Y DEPORTE -->
             <section id="cultura-deporte">
                 <div class="section-header">
                     <h2><i class="fas fa-futbol"></i> Cultura y Deporte</h2>
@@ -124,139 +128,79 @@
                 <div id="subcategoria-detalle-container" style="display: none;"></div>
             </section>
 
-            <!-- SECCIÓN ACTIVIDADES -->
+            <!-- SECCIÓN COMBINADA: ACTIVIDADES Y HORARIOS -->
             <section id="actividades">
                 <div class="section-header">
-                    <h2><i class="fas fa-calendar-alt"></i> Calendario de Actividades</h2>
+                    <h2><i class="fas fa-calendar-alt"></i> Agenda Escolar</h2>
                     <div class="section-actions">
-                        <span class="edit-btn" onclick="editarTituloSeccion('actividades', 'Calendario de Actividades')" title="Editar título"><i class="fas fa-edit"></i></span>
+                        <span class="edit-btn" onclick="editarTituloSeccion('actividades', 'Agenda Escolar')" title="Editar título"><i class="fas fa-edit"></i></span>
                         <button id="btnAgregarActividad" class="btn-primary" style="display: none;">
                             <i class="fas fa-plus"></i> Nueva Actividad
                         </button>
-                    </div>
-                </div>
-                
-                <div class="calendario" id="calendario-actividades"></div>
-                
-                <div class="actividades-lista">
-                    <h3>Lista de Actividades</h3>
-                    <div class="table-responsive">
-                        <table>
-                            <thead>
-                                <tr>
-                                    <th>Fecha</th>
-                                    <th>Actividad</th>
-                                    <th>Tipo</th>
-                                    <th>Curso</th>
-                                    <th>Acciones</th>
-                                </tr>
-                            </thead>
-                            <tbody id="actividades-body"></tbody>
-                        </table>
-                    </div>
-                </div>
-            </section>
-
-            <!-- SECCIÓN HORARIOS -->
-            <section id="horarios">
-                <div class="section-header">
-                    <h2><i class="fas fa-clock"></i> Horarios de Clases</h2>
-                    <div class="section-actions">
-                        <span class="edit-btn" onclick="editarTituloSeccion('horarios', 'Horarios de Clases')" title="Editar título"><i class="fas fa-edit"></i></span>
                         <button id="btnEditarHorario" class="btn-primary" style="display: none;">
                             <i class="fas fa-edit"></i> Gestionar Horarios
                         </button>
                     </div>
                 </div>
-                
-                <div class="selector-grado">
-                    <label for="selector-grado-horario">Seleccionar Grado:</label>
-                    <select id="selector-grado-horario" class="select-estilizado">
-                        <option value="">-- Seleccionar --</option>
-                        <option value="primero">Primero</option>
-                        <option value="segundo">Segundo</option>
-                        <option value="tercero">Tercero</option>
-                        <option value="cuarto">Cuarto</option>
-                        <option value="quinto">Quinto</option>
-                        <option value="sexto">Sexto</option>
-                        <option value="septimo">Séptimo</option>
-                        <option value="octavo">Octavo</option>
-                        <option value="noveno">Noveno</option>
-                        <option value="decimo">Décimo</option>
-                        <option value="once">Once</option>
-                    </select>
+
+                <!-- Tabs internos -->
+                <div class="agenda-tabs">
+                    <button class="agenda-tab-btn activo" data-agenda-tab="tab-actividades">
+                        <i class="fas fa-calendar-check"></i> Actividades
+                    </button>
+                    <button class="agenda-tab-btn" data-agenda-tab="tab-horarios">
+                        <i class="fas fa-clock"></i> Horarios
+                    </button>
                 </div>
-                
-                <div class="table-responsive" id="horarios-tabla-container"></div>
+
+                <!-- Panel: Actividades -->
+                <div id="tab-actividades" class="agenda-tab-panel activo">
+                    <div class="calendario" id="calendario-actividades"></div>
+                    
+                    <div class="actividades-lista">
+                        <h3>Lista de Actividades</h3>
+                        <div class="table-responsive">
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th>Fecha</th>
+                                        <th>Actividad</th>
+                                        <th>Tipo</th>
+                                        <th>Curso</th>
+                                        <th>Acciones</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="actividades-body"></tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Panel: Horarios -->
+                <div id="tab-horarios" class="agenda-tab-panel">
+                    <div class="selector-grado">
+                        <label for="selector-grado-horario">Seleccionar Grado:</label>
+                        <select id="selector-grado-horario" class="select-estilizado">
+                            <option value="">-- Seleccionar --</option>
+                            <option value="primero">Primero</option>
+                            <option value="segundo">Segundo</option>
+                            <option value="tercero">Tercero</option>
+                            <option value="cuarto">Cuarto</option>
+                            <option value="quinto">Quinto</option>
+                            <option value="sexto">Sexto</option>
+                            <option value="septimo">Séptimo</option>
+                            <option value="octavo">Octavo</option>
+                            <option value="noveno">Noveno</option>
+                            <option value="decimo">Décimo</option>
+                            <option value="once">Once</option>
+                        </select>
+                    </div>
+                    <div class="table-responsive" id="horarios-tabla-container"></div>
+                </div>
             </section>
 
-            <!-- SECCIÓN CALIFICACIONES Y ASISTENCIA -->
-            <section id="calificaciones">
-                <div class="section-header">
-                    <h2><i class="fas fa-chart-line"></i> Calificaciones y Asistencia</h2>
-                    <div class="section-actions">
-                        <span class="edit-btn" onclick="editarTituloSeccion('calificaciones', 'Calificaciones y Asistencia')" title="Editar título"><i class="fas fa-edit"></i></span>
-                    </div>
-                </div>
-                
-                <div id="selector-estudiante-container" class="selector-estudiante" style="display: none;">
-                    <label for="selector-estudiante-calif">Estudiante:</label>
-                    <select id="selector-estudiante-calif" class="select-estilizado"></select>
-                </div>
-                
-                <div class="tabs-container">
-                    <div class="tabs">
-                        <button class="tab-btn activo" data-tab="calificaciones-tab">
-                            <i class="fas fa-star"></i> Calificaciones
-                        </button>
-                        <button class="tab-btn" data-tab="asistencia-tab">
-                            <i class="fas fa-check-circle"></i> Asistencia
-                        </button>
-                    </div>
-                    
-                    <div id="calificaciones-tab" class="tab-panel activo">
-                        <div class="table-responsive">
-                            <table>
-                                <thead>
-                                    <tr>
-                                        <th>Materia</th>
-                                        <th>Nota 1</th>
-                                        <th>Nota 2</th>
-                                        <th>Nota 3</th>
-                                        <th>Promedio</th>
-                                        <th>Comportamiento</th>
-                                        <th>Acciones</th>
-                                    </tr>
-                                </thead>
-                                <tbody id="calificaciones-body"></tbody>
-                            </table>
-                        </div>
-                        <button id="btnAgregarCalificacion" class="btn-primary" style="display: none;">
-                            <i class="fas fa-plus"></i> Agregar Calificación
-                        </button>
-                    </div>
-                    
-                    <div id="asistencia-tab" class="tab-panel">
-                        <div class="table-responsive">
-                            <table>
-                                <thead>
-                                    <tr>
-                                        <th>Materia</th>
-                                        <th>Clases Totales</th>
-                                        <th>Asistencias</th>
-                                        <th>% Asistencia</th>
-                                        <th>Acciones</th>
-                                    </tr>
-                                </thead>
-                                <tbody id="asistencia-body"></tbody>
-                            </table>
-                        </div>
-                        <button id="btnAgregarAsistencia" class="btn-primary" style="display: none;">
-                            <i class="fas fa-plus"></i> Registrar Asistencia
-                        </button>
-                    </div>
-                </div>
-            </section>
+            <!-- SECCIÓN HORARIOS (alias para compatibilidad) -->
+            <section id="horarios" style="display:none !important;"></section>
 
             <!-- SECCIÓN FORO -->
             <section id="foro">
@@ -264,6 +208,16 @@
                     <h2><i class="fas fa-comments"></i> Foro Estudiantil</h2>
                     <div class="section-actions">
                         <span class="edit-btn" onclick="editarTituloSeccion('foro', 'Foro Estudiantil')" title="Editar título"><i class="fas fa-edit"></i></span>
+                    </div>
+                </div>
+
+                <div class="foro-buscador">
+                    <div class="foro-buscador-input">
+                        <i class="fas fa-search"></i>
+                        <input type="text" id="foroBuscador" placeholder="Buscar mensajes por título o contenido..." oninput="filtrarForo(this.value)">
+                        <button class="foro-buscador-clear" id="foroBuscadorClear" onclick="limpiarBuscadorForo()" style="display:none;" title="Limpiar">
+                            <i class="fas fa-times"></i>
+                        </button>
                     </div>
                 </div>
                 
@@ -287,7 +241,7 @@
                 </div>
             </section>
 
-            <!-- SECCIÓN SOLICITUDES (solo admin) -->
+            <!-- SECCIÓN SOLICITUDES -->
             <section id="solicitudes">
                 <div class="section-header">
                     <h2><i class="fas fa-inbox"></i> Solicitudes de Aprobación</h2>
@@ -366,14 +320,6 @@
                         </div>
                     </div>
                 </div>
-                
-                <div class="tarjeta video-tarjeta">
-                    <div class="tarjeta-header">
-                        <h3><i class="fas fa-video"></i> Video Institucional</h3>
-                        <button class="edit-btn-small" onclick="editarVideo()" title="Cambiar video"><i class="fas fa-pen"></i></button>
-                    </div>
-                    <div class="tarjeta-content" id="video-container"></div>
-                </div>
             </section>
 
             <!-- SECCIÓN CONTACTO -->
@@ -436,12 +382,12 @@
 
         <!-- ===== FOOTER ===== -->
         <footer>
-            <p>&copy; 2025 Colegio Centro de Educación Individualizada - Todos los derechos reservados</p>
+            <p>&copy; 2025 Colegio CEI - Todos los derechos reservados</p>
         </footer>
 
-        <!-- ===== MODALES MEJORADOS ===== -->
+        <!-- ===== MODALES ===== -->
         
-        <!-- MODAL LOGIN / REGISTRO MEJORADO -->
+        <!-- MODAL LOGIN / REGISTRO -->
         <div id="modalLogin" class="modal">
             <div class="modal-contenido modal-login">
                 <div class="modal-header">
@@ -547,7 +493,7 @@
             </div>
         </div>
 
-        <!-- MODAL EDITOR DE CONTENIDO MEJORADO -->
+        <!-- MODAL EDITOR DE CONTENIDO -->
         <div id="modalEditor" class="modal">
             <div class="modal-contenido">
                 <div class="modal-header">
@@ -622,7 +568,7 @@
             </div>
         </div>
 
-        <!-- MODAL AGREGAR/EDITAR ACTIVIDAD MEJORADO -->
+        <!-- MODAL AGREGAR/EDITAR ACTIVIDAD -->
         <div id="modalActividad" class="modal">
             <div class="modal-contenido modal-grande">
                 <div class="modal-header">
@@ -713,8 +659,13 @@
                     </div>
                     
                     <div class="form-group">
-                        <label for="actividad-imagen">URL de imagen (opcional)</label>
-                        <input type="url" id="actividad-imagen" placeholder="https://ejemplo.com/imagen.jpg">
+                        <label for="actividad-imagen">Imagen (opcional)</label>
+                        <div class="imagen-options">
+                            <input type="url" id="actividad-imagen-url" placeholder="https://ejemplo.com/imagen.jpg">
+                            <span class="option-separator">o</span>
+                            <input type="file" id="actividad-imagen-file" accept="image/*">
+                            <small>Sube una imagen desde tu dispositivo</small>
+                        </div>
                     </div>
                     
                     <div class="modal-actions">
@@ -730,8 +681,8 @@
         </div>
 
         <!-- MODAL DETALLE DE ACTIVIDAD -->
-        <div id="modalDetalleActividad" class="modal">
-            <div class="modal-contenido modal-actividad">
+        <div id="modalDetalleActividad" class="modal modal-actividad">
+            <div class="modal-contenido">
                 <div class="modal-header">
                     <h2><i class="fas fa-calendar-day"></i> Detalle de Actividad</h2>
                     <span class="cerrar" id="cerrarModalDetalle">&times;</span>
@@ -740,7 +691,7 @@
             </div>
         </div>
 
-        <!-- MODAL EDITAR HORARIO MEJORADO -->
+        <!-- MODAL EDITAR HORARIO -->
         <div id="modalHorario" class="modal">
             <div class="modal-contenido modal-grande">
                 <div class="modal-header">
@@ -841,103 +792,6 @@
             </div>
         </div>
 
-        <!-- MODAL AGREGAR/EDITAR CALIFICACIÓN -->
-        <div id="modalCalificacion" class="modal">
-            <div class="modal-contenido">
-                <div class="modal-header">
-                    <h2 id="tituloModalCalificacion"><i class="fas fa-star"></i> Agregar Calificación</h2>
-                    <span class="cerrar" id="cerrarModalCalificacion">&times;</span>
-                </div>
-                
-                <form id="formCalificacion">
-                    <input type="hidden" id="calificacion-id">
-                    <input type="hidden" id="calificacion-id-estudiante">
-                    
-                    <div class="form-group">
-                        <label for="calificacion-materia">Materia</label>
-                        <input type="text" id="calificacion-materia" placeholder="Ej: Matemáticas" required>
-                    </div>
-                    
-                    <div class="form-grid">
-                        <div class="form-group">
-                            <label for="calificacion-nota1">Nota 1</label>
-                            <input type="number" id="calificacion-nota1" step="0.1" min="0" max="10" required>
-                        </div>
-                        
-                        <div class="form-group">
-                            <label for="calificacion-nota2">Nota 2</label>
-                            <input type="number" id="calificacion-nota2" step="0.1" min="0" max="10" required>
-                        </div>
-                        
-                        <div class="form-group">
-                            <label for="calificacion-nota3">Nota 3</label>
-                            <input type="number" id="calificacion-nota3" step="0.1" min="0" max="10" required>
-                        </div>
-                    </div>
-                    
-                    <div class="form-group">
-                        <label for="calificacion-comportamiento">Comportamiento</label>
-                        <select id="calificacion-comportamiento">
-                            <option value="Excelente">Excelente 🌟</option>
-                            <option value="Bueno">Bueno 👍</option>
-                            <option value="Regular">Regular ⚠️</option>
-                            <option value="Malo">Malo 👎</option>
-                        </select>
-                    </div>
-                    
-                    <div class="modal-actions">
-                        <button type="button" class="btn-secondary" onclick="document.getElementById('modalCalificacion').style.display='none'">
-                            Cancelar
-                        </button>
-                        <button type="submit" class="btn-success">
-                            <i class="fas fa-save"></i> Guardar
-                        </button>
-                    </div>
-                </form>
-            </div>
-        </div>
-
-        <!-- MODAL AGREGAR/EDITAR ASISTENCIA -->
-        <div id="modalAsistencia" class="modal">
-            <div class="modal-contenido">
-                <div class="modal-header">
-                    <h2><i class="fas fa-check-circle"></i> Registrar Asistencia</h2>
-                    <span class="cerrar" id="cerrarModalAsistencia">&times;</span>
-                </div>
-                
-                <form id="formAsistencia">
-                    <input type="hidden" id="asistencia-id">
-                    <input type="hidden" id="asistencia-id-estudiante">
-                    
-                    <div class="form-group">
-                        <label for="asistencia-materia">Materia</label>
-                        <input type="text" id="asistencia-materia" placeholder="Ej: Matemáticas" required>
-                    </div>
-                    
-                    <div class="form-grid">
-                        <div class="form-group">
-                            <label for="asistencia-clases-totales">Clases Totales</label>
-                            <input type="number" id="asistencia-clases-totales" min="0" placeholder="Ej: 20" required>
-                        </div>
-                        
-                        <div class="form-group">
-                            <label for="asistencia-asistencias">Asistencias</label>
-                            <input type="number" id="asistencia-asistencias" min="0" placeholder="Ej: 18" required>
-                        </div>
-                    </div>
-                    
-                    <div class="modal-actions">
-                        <button type="button" class="btn-secondary" onclick="document.getElementById('modalAsistencia').style.display='none'">
-                            Cancelar
-                        </button>
-                        <button type="submit" class="btn-success">
-                            <i class="fas fa-save"></i> Guardar
-                        </button>
-                    </div>
-                </form>
-            </div>
-        </div>
-
         <!-- MODAL EDITOR DE CULTURA -->
         <div id="modalEditorCultura" class="modal">
             <div class="modal-contenido modal-grande">
@@ -949,11 +803,107 @@
             </div>
         </div>
 
-        <!-- MODAL PARA VER IMÁGENES AMPLIADAS (MUESTRAS ARTÍSTICAS) -->
-        <div id="modalImagen" class="modal imagen-modal" onclick="cerrarModalImagen()">
-            <div class="modal-contenido-imagen">
+        <!-- MODAL PARA VER IMÁGENES AMPLIADAS -->
+        <div id="modalImagen" class="modal imagen-modal">
+            <div class="modal-contenido-imagen" onclick="event.stopPropagation()">
                 <span class="cerrar-modal" onclick="cerrarModalImagen()">&times;</span>
+                <button class="img-nav-btn img-nav-prev" onclick="navegarImagen(-1)" title="Anterior">
+                    <i class="fas fa-chevron-left"></i>
+                </button>
                 <img id="imagenAmpliada" src="" alt="Imagen ampliada">
+                <button class="img-nav-btn img-nav-next" onclick="navegarImagen(1)" title="Siguiente">
+                    <i class="fas fa-chevron-right"></i>
+                </button>
+                <div class="img-modal-footer">
+                    <div id="imagen-descripcion" class="imagen-descripcion-modal"></div>
+                    <div id="imagen-contador" class="imagen-contador"></div>
+                </div>
+            </div>
+            <div class="img-modal-backdrop" onclick="cerrarModalImagen()"></div>
+        </div>
+
+        <!-- MODAL PARA AGREGAR IMAGEN A GALERÍA -->
+        <div id="modalAgregarImagen" class="modal">
+            <div class="modal-contenido">
+                <div class="modal-header">
+                    <h2><i class="fas fa-plus"></i> Agregar Imagen a Galería</h2>
+                    <span class="cerrar" id="cerrarModalAgregarImagen">&times;</span>
+                </div>
+                
+                <form id="formAgregarImagen">
+                    <input type="hidden" id="categoria-imagen">
+                    
+                    <div class="form-group">
+                        <label for="imagen-file">Seleccionar Imagen</label>
+                        <input type="file" id="imagen-file" accept="image/*" required>
+                        <div id="preview-imagen-file" style="margin-top: 10px;"></div>
+                        <small>Formatos permitidos: JPG, PNG, GIF, WebP</small>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="imagen-descripcion-input">Descripción de la Imagen</label>
+                        <textarea id="imagen-descripcion-input" rows="3" placeholder="Describe qué representa esta imagen..." required></textarea>
+                    </div>
+                    
+                    <div class="modal-actions">
+                        <button type="button" class="btn-secondary" onclick="document.getElementById('modalAgregarImagen').style.display='none'">
+                            <i class="fas fa-times"></i> Cancelar
+                        </button>
+                        <button type="submit" class="btn-success">
+                            <i class="fas fa-save"></i> Agregar Imagen
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- MODAL PARA EDITAR IMAGEN DE GALERÍA -->
+        <div id="modalEditarImagen" class="modal">
+            <div class="modal-contenido">
+                <div class="modal-header">
+                    <h2><i class="fas fa-edit"></i> Editar Imagen de la Galería</h2>
+                    <span class="cerrar" id="cerrarModalEditarImagen">&times;</span>
+                </div>
+                
+                <form id="formEditarImagen">
+                    <input type="hidden" id="categoria-editar">
+                    <input type="hidden" id="index-editar">
+                    
+                    <div class="form-group">
+                        <label>Cambiar Imagen</label>
+                        <div class="imagen-opciones">
+                            <div class="opcion-imagen">
+                                <label for="imagen-editar-local">
+                                    <i class="fas fa-image"></i> Subir desde Local
+                                </label>
+                                <input type="file" id="imagen-editar-local" accept="image/*">
+                                <div id="preview-imagen-editar-local" style="margin-top: 10px;"></div>
+                                <small>Sube una nueva imagen desde tu dispositivo (opcional)</small>
+                            </div>
+                            <div class="opcion-imagen">
+                                <label for="imagen-editar-url">
+                                    <i class="fas fa-link"></i> URL de Imagen
+                                </label>
+                                <input type="url" id="imagen-editar-url" placeholder="https://ejemplo.com/imagen.jpg">
+                                <small>O pega la URL de una imagen (opcional)</small>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="descripcion-editar">Descripción de la Imagen</label>
+                        <textarea id="descripcion-editar" rows="4" placeholder="Describe qué representa esta imagen..."></textarea>
+                    </div>
+                    
+                    <div class="modal-actions">
+                        <button type="button" class="btn-secondary" onclick="document.getElementById('modalEditarImagen').style.display='none'">
+                            <i class="fas fa-times"></i> Cancelar
+                        </button>
+                        <button type="submit" class="btn-success">
+                            <i class="fas fa-save"></i> Guardar Cambios
+                        </button>
+                    </div>
+                </form>
             </div>
         </div>
     </div>
